@@ -8,8 +8,10 @@ import {hp} from '../utils/dimensions';
 import Congratulation from './Congratulation';
 import Home from './Home';
 import Login from './Login';
+import Market from './Market';
 import Registration from './Registration';
 import Verification from './Verification';
+import Wallet from './Wallet';
 
 class Onboarding extends React.Component {
   constructor(props) {
@@ -79,7 +81,7 @@ class Onboarding extends React.Component {
     return true ? (
       <Bg_view flex>
         <StatusBar backgroundColor="#eee" barStyle="dark-content" />
-        <Home />
+        <Market />
       </Bg_view>
     ) : (
       <Bg_view flex>

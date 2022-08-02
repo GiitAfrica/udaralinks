@@ -5,6 +5,7 @@ import Currency from '../Components/currency';
 import Fr_text from '../Components/Fr_text';
 import Icon from '../Components/Icon';
 import Listfooter from '../Components/listfooter';
+import Payment from '../Components/payment';
 import {hp, wp} from '../utils/dimensions';
 
 class Home extends React.Component {
@@ -43,6 +44,19 @@ class Home extends React.Component {
     {
       title: 'bank\ndeposit',
       icon: require('./../Assets/Icons/bank_deposit_icon.png'),
+    },
+  );
+
+  payments = new Array(
+    {
+      title: 'Pay a Bill',
+      icon: require('./../Assets/Icons/paybill_icon.png'),
+      text: 'Look after your necessities',
+    },
+    {
+      title: 'Buy Airtime',
+      text: 'Easy phone recharge',
+      icon: require('./../Assets/Icons/paybill_icon.png'),
     },
   );
 
@@ -116,35 +130,6 @@ class Home extends React.Component {
             no_bg>
             <Bg_view no_bg>
               <Fr_text accent bold size={wp(5.6)}>
-                Payments
-              </Fr_text>
-              <Bg_view no_bg style={{padding: wp(2.8)}}>
-                <Bg_view
-                  horizontal
-                  style={{
-                    alignItems: 'center',
-                    padding: wp(2.8),
-                    borderRadius: wp(4),
-                  }}>
-                  <Icon
-                    style={{height: wp(10)}}
-                    icon={require('./../Assets/Icons/paybill_icon.png')}
-                  />
-                  <Bg_view flex style={{marginLeft: wp(2.8)}}>
-                    <Fr_text bold size={wp(4.5)}>
-                      Pay a Bill
-                    </Fr_text>
-                    <Fr_text opacity={0.8}>Look after your necesities</Fr_text>
-                  </Bg_view>
-                  <Icon
-                    icon={require('./../Assets/Icons/forward_arrow_icon.png')}
-                    style={{marginLeft: wp(2.8)}}
-                  />
-                </Bg_view>
-              </Bg_view>
-            </Bg_view>
-            <Bg_view no_bg>
-              <Fr_text accent bold size={wp(5.6)}>
                 Buy/Sell Currency
               </Fr_text>
               <Bg_view
@@ -186,6 +171,16 @@ class Home extends React.Component {
                   icon={require('./../Assets/Icons/forward_arrow_icon.png')}
                   style={{marginLeft: wp(2.8)}}
                 />
+              </Bg_view>
+            </Bg_view>
+            <Bg_view no_bg style={{marginTop: hp(4)}}>
+              <Fr_text accent bold size={wp(5.6)}>
+                Payments
+              </Fr_text>
+              <Bg_view no_bg style={{padding: wp(2.8)}}>
+                {this.payments.map(payment => (
+                  <Payment payment={payment} key={payment.title} />
+                ))}
               </Bg_view>
             </Bg_view>
           </Bg_view>

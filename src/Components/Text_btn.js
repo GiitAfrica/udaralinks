@@ -1,7 +1,6 @@
 import React from 'react';
 import {TouchableNativeFeedback, View} from 'react-native';
 import {wp} from '../utils/dimensions';
-import Bg_view from './Bg_view';
 import Fr_text from './Fr_text';
 
 class Text_btn extends React.Component {
