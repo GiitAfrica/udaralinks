@@ -12,27 +12,45 @@ class Small_btn extends React.Component {
   }
 
   render = () => {
-    let {title, action, inverted, style, icon, right_icon} = this.props;
+    let {title, action, inverted, disabled, style, loading, icon, right_icon} =
+      this.props;
+
+    if (loading) disabled = loading;
 
     return (
       <View style={{margin: wp(2.8), ...style}}>
-        <TouchableNativeFeedback onPress={action}>
+        <TouchableNativeFeedback
+          onPress={disabled ? null : action}
+          disabled={disabled}>
           <View>
             <Bg_view
               horizontal
-              accent={!inverted}
+              accent={!inverted && !disabled}
+              background_color={
+                disabled ? '#ccc' : (style && style.backgroundColor) || null
+              }
               style={{
                 height: hp(5.6),
                 borderRadius: wp(2.8),
                 minWidth: wp(30),
+                maxWidth: wp(50),
                 alignItems: 'center',
                 justifyContent: 'center',
                 borderWidth: inverted ? 1.5 : null,
-                borderColor: inverted ? '#FF6905' : null,
+                borderColor: inverted
+                  ? disabled
+                    ? '#DBD8DA'
+                    : '#FF6200'
+                  : null,
                 ...style,
               }}>
               {right_icon}
-              <Fr_text bold size={wp(4)} caps color="#fff" accent={inverted}>
+              <Fr_text
+                bold
+                size={wp(4)}
+                caps
+                color="#fff"
+                accent={inverted && !disabled}>
                 {title}
               </Fr_text>
               {icon}

@@ -3,14 +3,14 @@
 
 import React from 'react';
 import 'react-native-gesture-handler';
-import {Text, View} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
-// import {createStackNavigator} from '@react-navigation/stack';
-// import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import {createStackNavigator} from '@react-navigation/stack';
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import {StatusBar} from 'react-native';
 import Splash from './src/Screens/splash';
 import Onboarding from './src/Screens/onboarding';
-import Bg_view from './src/Components/Bg_view';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import io from 'socket.io-client';
 
 //
 import Emitter from './src/utils/emitter';
@@ -19,113 +19,190 @@ import Login from './src/Screens/Login';
 import Home from './src/Screens/Home';
 import Wallet from './src/Screens/Wallet';
 import Market from './src/Screens/Market';
-import Tracks from './src/Screens/Tracks';
 import Account from './src/Screens/Account';
+import Login_et_signup from './src/Screens/Login_et_signup';
+import Registration from './src/Screens/registration';
+import Verification from './src/Screens/verification';
+import Congratulation from './src/Screens/congratulation';
+import {hp, wp} from './src/utils/dimensions';
+import Bg_view from './src/Components/Bg_view';
+import Icon from './src/Components/Icon';
+import {domain, get_request, post_request} from './src/utils/services';
+import toast from './src/utils/toast';
+import Update_username from './src/Screens/update_username';
+import Change_password from './src/Screens/change_password';
+import Update_phone from './src/Screens/update_phone';
+import Privacy_policy from './src/Screens/privacy_policy';
+import Sell from './src/Screens/Sell';
+import Onsale_details from './src/Screens/Onsale_details';
+import Offers from './src/Screens/offers';
+import Chat from './src/Screens/Chat';
+import Update_email from './src/Screens/update_email';
+import Submit_dispute from './src/Screens/submit_dispute';
+import Dispute from './src/Screens/dispute';
+import Disputes from './src/Screens/disputes';
+
+const User = React.createContext();
 
 const emitter = new Emitter();
 
-// const Auth_stack = createStackNavigator();
+const Auth_stack = createStackNavigator();
 
-// const Bottom_tab = createBottomTabNavigator();
+const App_stack = createStackNavigator();
 
-// class App_entry extends React.Component {
-//   constructor(props) {
-//     super(props);
+const Bottom_tab = createBottomTabNavigator();
 
-//     this.state = {init_screen: 'onboarding'};
-//   }
+const Admin_id = 'users~platform_user~3000';
 
-//   componentDidMount = () => {};
+class App_entry extends React.Component {
+  constructor(props) {
+    super(props);
 
-//   render = () => {
-//     let {init_screen} = this.state;
-//     return (
-//       <Auth_stack.Navigator
-//         initialRouteName={init_screen}
-//         screenOptions={{headerShown: false}}>
-//         <Auth_stack.Screen name="onboarding" component={Onboarding} />
-//         <Auth_stack.Screen name="signup" component={Signup} />
-//         <Auth_stack.Screen name="login" component={Login} />
-//         {/* <Auth_stack.Screen name="forgot_password" component={Forgot_password} />
-//         <Auth_stack.Screen name="reset_password" component={Reset_password} /> */}
-//       </Auth_stack.Navigator>
-//     );
-//   };
-// }
+    this.state = {init_screen: 'onboarding'};
+  }
 
-// class Index extends React.Component {
-//   constructor(props) {
-//     super(props);
-//   }
+  componentDidMount = () => {};
 
-//   render = () => {
-//     return (
-//       <Bottom_tab.Navigator
-//         backBehavior="initialRoute"
-//         screenOptions={{
-//           headerShown: false,
-//           tabBarActiveTintColor: '#FF6905',
-//           tabBarInactiveTintColor: '#858597',
-//           tabBarStyle: {
-//             height: hp(8),
-//             justifyContent: 'center',
-//             paddingBottom: hp(1),
-//           },
-//         }}>
-//         <Bottom_tab.Screen
-//           name="home"
-//           component={Home}
-//           options={{
-//             tabBarLabel: 'Home',
-//             // tabBarIcon: ({color, size}) => (
-//             //   <Feather name="home" color={color} size={size} />
-//             // ),
-//           }}
-//         />
-//         <Bottom_tab.Screen
-//           name="wallet"
-//           component={Wallet}
-//           options={{
-//             tabBarLabel: 'Wallet',
-//             // tabBarIcon: ({color, size}) => (
-//             //   <Feather name="book" color={color} size={size} />
-//             // ),
-//           }}
-//         />
-//         <Bottom_tab.Screen
-//           name="market"
-//           component={Market}
-//           options={{
-//             tabBarLabel: 'Market',
-//             // tabBarIcon: ({color, size}) => (
-//             //   <Feather name="search" color={color} size={size} />
-//             // ),
-//           }}
-//         />
-//         <Bottom_tab.Screen
-//           name="tracks"
-//           component={Tracks}
-//           options={{
-//             tabBarLabel: 'Tracks',
-//             // tabBarIcon: ({color, size}) => (
-//             //   <Feather name="message-circle" color={color} size={size} />
-//             // ),
-//           }}
-//         />
-//         <Bottom_tab.Screen
-//           name="account"
-//           component={Account}
-//           options={{
-//             tabBarLabel: 'Account',
-//             // tabBarIcon: ({color, size}) => (
-//             //   <Feather name="user" color={color} size={size} />
-//             // ),
-//           }}
-//         />
-//       </Bottom_tab.Navigator>
-//     );
-//   };
-// }
+  render = () => {
+    let {onboardings, init_screen} = this.props;
+
+    return (
+      <Auth_stack.Navigator
+        initialRouteName={init_screen}
+        screenOptions={{
+          headerShown: false,
+          keyboardHandlingEnabled: true,
+          gestureEnabled: true,
+          animationEnabled: true,
+        }}>
+        <Auth_stack.Screen
+          name="onboarding"
+          component={Onboarding}
+          initialParams={{onboardings}}
+        />
+        <Auth_stack.Screen name="login_et_signup" component={Login_et_signup} />
+        <Auth_stack.Screen name="signup" component={Signup} />
+        <Auth_stack.Screen name="registration" component={Registration} />
+        <Auth_stack.Screen name="verification" component={Verification} />
+        <Auth_stack.Screen name="congratulation" component={Congratulation} />
+        <Auth_stack.Screen name="login" component={Login} />
+      </Auth_stack.Navigator>
+    );
+  };
+}
+
+class Index extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {};
+  }
+
+  render = () => {
+    return (
+      <Bottom_tab.Navigator
+        initialRouteName="home"
+        backBehavior="initialRoute"
+        screenOptions={{
+          headerShown: false,
+          tabBarActiveTintColor: '#FF6905',
+          tabBarInactiveTintColor: '#858597',
+          tabBarStyle: {
+            height: hp(9),
+            justifyContent: 'center',
+            paddingBottom: hp(1),
+          },
+        }}>
+        <Bottom_tab.Screen
+          name="home"
+          component={Home}
+          options={{
+            tabBarLabel: 'Home',
+            tabBarIcon: ({color, size}) => (
+              <Icon
+                icon="home_icon.png"
+                style={{height: wp(7), width: wp(7)}}
+              />
+            ),
+          }}
+        />
+        <Bottom_tab.Screen
+          name="wallet"
+          component={Wallet}
+          options={{
+            tabBarLabel: 'Wallet',
+            tabBarIcon: ({color, size}) => (
+              <Icon
+                icon="wallet_icon.png"
+                style={{height: wp(7), width: wp(7)}}
+              />
+            ),
+          }}
+        />
+        <Bottom_tab.Screen
+          name="market"
+          component={Market}
+          options={{
+            tabBarLabel: 'Market',
+            tabBarIcon: ({color, size}) => (
+              <Icon
+                icon="market_icon.png"
+                style={{height: wp(7), width: wp(7)}}
+              />
+            ),
+          }}
+        />
+        <Bottom_tab.Screen
+          name="account"
+          component={Account}
+          options={{
+            tabBarLabel: 'Account',
+            tabBarIcon: ({color, size}) => (
+              <Icon
+                icon="account_icon.png"
+                style={{height: wp(7), width: wp(7)}}
+              />
+            ),
+          }}
+        />
+      </Bottom_tab.Navigator>
+    );
+  };
+}
+
+class App_stack_entry extends React.Component {
+  constructor(props) {
+    super(props);
+  }
+
+  render = () => {
+    return (
+      <App_stack.Navigator
+        initialRouteName="index"
+        screenOptions={{
+          headerShown: false,
+          keyboardHandlingEnabled: true,
+          // gestureEnabled: true,
+          animationEnabled: true,
+        }}>
+        <App_stack.Screen name="index" component={Index} />
+        <App_stack.Screen name="change_password" component={Change_password} />
+        <App_stack.Screen name="update_phone" component={Update_phone} />
+        <App_stack.Screen name="update_email" component={Update_email} />
+        <App_stack.Screen name="sell" component={Sell} />
+        <App_stack.Screen name="onsale_details" component={Onsale_details} />
+        <App_stack.Screen name="offers" component={Offers} />
+        <App_stack.Screen name="submit_dispute" component={Submit_dispute} />
+        <App_stack.Screen name="dispute" component={Dispute} />
+        <App_stack.Screen name="disputes" component={Disputes} />
+        <App_stack.Screen name="chat" component={Chat} />
+        <App_stack.Screen name="update_username" component={Update_username} />
+        <App_stack.Screen name="verification" component={Verification} />
+        <App_stack.Screen name="privacy_policy" component={Privacy_policy} />
+      </App_stack.Navigator>
+    );
+  };
+}
 
 class Udara extends React.Component {
   constructor(props) {
@@ -134,30 +211,211 @@ class Udara extends React.Component {
     this.state = {logged: 'fetching'};
   }
 
+  set_socket = user => {
+    let sock = io('http://10.0.2.2:3000');
+    sock.on('user_id', socket_id => {
+      this.sock = sock;
+      sock.emit('user_id_return', {user, socket: socket_id});
+    });
+
+    sock.on('is_typing', chat => emitter.emit('is_typing', chat));
+
+    sock.on('not_typing', chat => emitter.emit('not_typing', chat));
+
+    sock.on('new_message', message => emitter.emit('new_message', message));
+
+    sock.on('offer_status', payload => {
+      console.log(payload);
+      emitter.emit('offer_status_update', payload);
+    });
+
+    return sock.connected;
+  };
+
   componentDidMount = async () => {
-    let user = await AsyncStorage.getItem('user');
-    if (!user) this.setState({logged: false});
-    else {
-      // Fetch from server
+    let user = await AsyncStorage.getItem('user'),
+      new_user;
+    if (!user) {
+      new_user = await AsyncStorage.getItem('new_user');
+      if (new_user) this.setState({init_screen: 'login', logged: false});
+      else {
+        let onboardings = await get_request('onboardings');
+        let signed_out = await AsyncStorage.getItem('signed_out');
+        if (signed_out) signed_out = true;
+
+        if (onboardings && !onboardings._$not_sent) {
+          this.onboardings = onboardings;
+          this.setState({logged: false, signed_out});
+        } else toast('You are offline');
+      }
+    } else {
+      let result = await get_request(`user_refresh/${user}`);
+
+      if (result) {
+        this.setState({user: result.user, wallet: result.wallet, logged: true});
+        await AsyncStorage.setItem('user', result.user._id);
+
+        this.set_socket(result.user._id);
+      } else {
+        this.setState({logged: false, signed_out: true});
+        toast('Cannot fetch user from server.');
+      }
     }
+
+    this.verified = async ({user, country_code, wallet}) => {
+      await AsyncStorage.setItem(
+        'new_user',
+        JSON.stringify({...user, country_code}),
+      );
+      this.setState({wallet, user});
+    };
+
+    this.logged_in = async ({user, wallet}) => {
+      this.setState({logged: true, user, wallet, init_screen: ''});
+      await AsyncStorage.setItem('user', user._id);
+    };
+
+    this.topup = async ({value, currency}) => {
+      let {wallet} = this.state;
+
+      let response = await post_request(`topup`, {
+        value,
+        currency,
+        wallet: wallet._id,
+        user: wallet.user,
+      });
+
+      if (response.ok) {
+        if (!wallet[currency]) wallet[currency] = 0;
+        wallet[currency] += value;
+        emitter.emit('new_transaction', response.transaction);
+        this.setState({wallet});
+
+        return true;
+      } else toast('Topup Failed!');
+    };
+
+    this.withdraw = async ({value, currency}) => {
+      let {wallet} = this.state;
+
+      if (wallet[currency] < value) return toast('Insufficient balance');
+
+      let response = await post_request(`withdraw`, {
+        value,
+        currency,
+        wallet: wallet._id,
+        user: wallet.user,
+      });
+
+      if (response.ok) {
+        wallet[currency] -= value;
+        emitter.emit('new_transaction', response.transaction);
+
+        this.setState({wallet});
+
+        return true;
+      } else toast('Withdraw Failed!');
+    };
+
+    this.deduct_wallet = ({value, currency}) => {
+      let {wallet} = this.state;
+
+      wallet[currency || 'naira'] -= Number(value);
+      this.setState({wallet});
+    };
+
+    this.top_wallet = ({value, currency}) => {
+      let {wallet} = this.state;
+
+      wallet[currency] += Number(value);
+      this.setState({wallet});
+    };
+
+    this.signout = async () => {
+      this.setState({logged: false, signed_out: true});
+      await AsyncStorage.removeItem('user');
+      await AsyncStorage.setItem('signed_out', '1');
+    };
+
+    this.update_fav_currency = fav_currency =>
+      this.setState({wallet: {...this.state.wallet, fav_currency}});
+
+    this.username_updated = username =>
+      this.setState({user: {...this.state.user, username}});
+
+    this.email_updated = email =>
+      this.setState({user: {...this.state.user, email}});
+
+    this.update_phone = ({phone, verify_later, country_code}) =>
+      this.setState({
+        user: {
+          ...this.state.user,
+          verified: !verify_later,
+          phone,
+          country: country_code.country,
+          country_code: country_code.country_code,
+        },
+      });
+
+    this.send_message = message => {
+      this.sock.emit('message', {to: message.to, message});
+      message._id = Date.now();
+      message.created = Date.now();
+
+      return message;
+    };
+
+    this.blur_message_input = payload => this.sock.emit('not_typing', payload);
+
+    this.focus_message_input = payload => this.sock.emit('is_typing', payload);
+
+    emitter.listen('username_updated', this.username_updated);
+    emitter.listen('update_phone', this.update_phone);
+    emitter.listen('email_updated', this.email_updated);
+    emitter.listen('update_fav_currency', this.update_fav_currency);
+    emitter.listen('signout', this.signout);
+    emitter.listen('deduct_wallet', this.deduct_wallet);
+    emitter.listen('topup', this.topup);
+    emitter.listen('top_wallet', this.top_wallet);
+    emitter.listen('withdraw', this.withdraw);
+    emitter.listen('verified', this.verified);
+    emitter.listen('logged_in', this.logged_in);
+    emitter.listen('send_message', this.send_message);
+    emitter.listen('focus_message_input', this.focus_message_input);
+    emitter.listen('blur_message_input', this.blur_message_input);
   };
 
   render = () => {
-    let {logged} = this.state;
+    let {logged, user, wallet, init_screen, signed_out} = this.state;
+    if (wallet) wallet.fav_currency = wallet.fav_currency || 'naira';
+
     return (
       <NavigationContainer>
-        <Bg_view flex>
-          {logged === 'fetching' ? (
-            <Splash />
-          ) : logged === true ? (
-            <></>
-          ) : (
-            <Onboarding />
-          )}
-        </Bg_view>
+        {logged === 'fetching' ? (
+          <Splash />
+        ) : logged === true ? (
+          <Bg_view flex>
+            <StatusBar backgroundColor="#eee" barStyle="dark-content" />
+            <User.Provider value={{...user, wallet}}>
+              <App_stack_entry />
+            </User.Provider>
+          </Bg_view>
+        ) : (
+          <App_entry
+            onboardings={this.onboardings}
+            init_screen={
+              init_screen
+                ? init_screen
+                : signed_out
+                ? 'login_et_signup'
+                : 'onboarding'
+            }
+          />
+        )}
       </NavigationContainer>
     );
   };
 }
 
 export default Udara;
+export {emitter, User, Admin_id};

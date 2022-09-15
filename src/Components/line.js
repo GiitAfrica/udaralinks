@@ -2,13 +2,13 @@ import React from 'react';
 import {hp, wp} from '../utils/dimensions';
 import Bg_view from './Bg_view';
 
-const Line = () => {
+const Line = ({color}) => {
   return (
     <Bg_view
       style={{
         height: 1,
         borderBottomWidth: 0.2,
-        borderBottomColor: '#aaa',
+        borderBottomColor: color || '#aaa',
         marginHorizontal: wp(5.6),
         marginVertical: hp(0.7),
       }}

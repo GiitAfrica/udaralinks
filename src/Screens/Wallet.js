@@ -3,251 +3,348 @@ import {
   StatusBar,
   View,
   ScrollView,
-  TouchableNativeFeedback,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import Bg_view from '../Components/Bg_view';
 import Fr_text from '../Components/Fr_text';
 import Icon from '../Components/Icon';
 import Line from '../Components/line';
-import Loadindicator from '../Components/load_indicator';
 import Small_btn from '../Components/small_button';
-import Transaction from '../Components/transaction';
 import {hp, wp} from '../utils/dimensions';
 import Cool_modal from '../Components/cool_modal';
-import Select_currency from '../Components/select_currency';
-import List_empty from '../Components/list_empty';
+import {Admin_id, User} from '../../Udara';
+import Amount_to_sell from '../Components/amount_to_sell';
+import Topup from '../Components/topup';
+import Withdraw from '../Components/withdraw';
+import Transactions from '../Components/transactions';
+import Currencies from '../Components/currencies';
+import Buy from '../Components/buy';
+import Paycheck from '../Components/paycheck';
+
+let alphabetic_naming = new Object();
+let currencies = new Array();
 
 class Wallet extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      from_currency: 'USD Dollar',
-      to_currency: 'NGN Naira',
+      value: 0,
+      current_index: 0,
+      currency_full: {
+        alphabetic_name: 'USD',
+        icon: 'dollar_icon.png',
+        flag: 'usa_flag_rectangle.png',
+      },
     };
   }
 
-  componentDidMount = () => {
-    this.setState({
-      transactions: new Array(
-        {
-          _id: 1,
-          from_currency: 'USD',
-          to_currency: 'Naira',
-          from_value: '100.00',
-          to_value: '58,000.00',
-          status: 'completed',
-        },
-        {
-          _id: 2,
-          from_currency: 'Pounds',
-          to_currency: 'Naira',
-          from_value: '100.00',
-          to_value: '58,000.00',
-          status: 'pending',
-        },
-      ),
-    });
+  componentDidMount = async () => {};
+
+  topup = () => this.topup_modal?.toggle_show_modal();
+
+  withdraw = () => this.withdraw_modal?.toggle_show_modal();
+
+  sell = () => this.cool_modal_sell_value?.toggle_show_modal();
+
+  buy = () => this.cool_modal_buy?.toggle_show_modal();
+
+  format_balance = balance => {
+    return Number(balance).toFixed(2);
   };
 
-  send = () => {};
+  wallet_balance = (balance, profits) => {
+    return (
+      <Bg_view
+        no_bg
+        horizontal
+        style={{
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          paddingHorizontal: wp(5.6),
+          width: wp(),
+        }}>
+        <Bg_view no_bg style={{marginLeft: wp(5.6)}}>
+          <Fr_text
+            color="#fff"
+            style={{marginTop: hp(2.8)}}
+            size={wp(4)}
+            bold="600">
+            Total balance
+          </Fr_text>
+          <Fr_text color="#fff" bold="900" size={wp(6.5)}>
+            {`${this.format_balance(balance)} NGN`}
+          </Fr_text>
+          <Bg_view no_bg>
+            <Fr_text
+              bold={this.user._id === Admin_id && profits && '600'}
+              color="#fff"
+              capitalise>
+              {this.user._id === Admin_id && profits
+                ? 'Admin Balance: '
+                : this.user.username}
+            </Fr_text>
+            {this.user._id === Admin_id && profits ? (
+              <Fr_text
+                size={wp(5)}
+                color="#fff"
+                bold>{`${profits} NGN`}</Fr_text>
+            ) : null}
+          </Bg_view>
+        </Bg_view>
+        <Icon
+          icon="udara_wallet_icon.png"
+          style={{height: wp(20), width: wp(20)}}
+        />
+      </Bg_view>
+    );
+  };
 
-  receive = () => {};
+  set_sell_value = values => this.setState({...values});
 
-  convert = () => {};
+  toggle_to_currency = () => this.to_currency_modal?.toggle_show_modal();
 
-  set_from_currency = from_currency => this.setState({from_currency});
+  paycheck = () => this.paycheck_modal?.toggle_show_modal();
 
-  set_to_currency = to_currency => this.setState({to_currency});
+  set_to_currency = (to_currency, to_full) => {
+    this.setState(
+      {to_currency, to_full},
+      this.to_currency_modal.toggle_show_modal,
+    );
+  };
+
+  refresh_txs = () => {
+    this.setState({refreshing_txs: true}, () =>
+      this.setState({refreshing_txs: false}),
+    );
+  };
+
+  set_value = value => this.setState({value});
+
+  set_rate = rate => this.setState({rate});
+
+  set_currency = (currency, currency_full) =>
+    this.setState({currency, currency_full});
 
   render = () => {
-    let {transactions, from_currency, to_currency} = this.state;
+    let {navigation} = this.props;
+    let {value, refreshing_txs, rate, currency_full} = this.state;
 
     return (
-      <Bg_view flex>
-        <StatusBar backgroundColor="purple" barStyle="light-content" />
-        <ScrollView showVerticalScrollIndicator={false}>
-          <Bg_view flex>
-            <Bg_view
-              style={{minHeight: hp(45), borderBottomRightRadius: wp(20)}}
-              background_color="purple">
-              <Icon
-                style={{marginTop: hp(5.6)}}
-                icon={require('./../Assets/Icons/master_card_circles.png')}
-              />
-              <Bg_view
-                no_bg
-                horizontal
-                style={{
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  paddingHorizontal: wp(5.6),
-                }}>
-                <Bg_view no_bg style={{marginLeft: wp(5.6)}}>
-                  <Fr_text
-                    color="#fff"
-                    style={{marginTop: hp(2.8)}}
-                    size={wp(4)}
-                    bold="600">
-                    Total balance
-                  </Fr_text>
-                  <Fr_text color="#fff" bold size={wp(7.5)}>
-                    1,000,000 NGN
-                  </Fr_text>
-                  <Fr_text color="#fff" capitalise>
-                    paul smith
-                  </Fr_text>
-                </Bg_view>
-                <Icon
-                  icon={require('./../Assets/Icons/udara_wallet_icon.png')}
-                />
-              </Bg_view>
-              <Bg_view
-                no_bg
-                horizontal
-                style={{
-                  justifyContent: 'space-evenly',
-                  paddingTop: hp(2),
-                }}>
-                <TouchableNativeFeedback onPress={this.send}>
-                  <View
+      <User.Consumer>
+        {user => {
+          this.user = user;
+          this.wallet = user.wallet;
+
+          return (
+            <Bg_view flex>
+              <StatusBar backgroundColor="#240B28" barStyle="light-content" />
+              <ScrollView showsVerticalScrollIndicator={false}>
+                <Bg_view flex>
+                  <Bg_view
                     style={{
-                      padding: wp(5.6),
-                      alignItems: 'center',
-                      paddingHorizontal: wp(2.8),
-                    }}>
+                      minHeight: hp(30),
+                      maxHeight: hp(42),
+                      borderBottomRightRadius: wp(20),
+                    }}
+                    background_color="#240B28">
                     <Icon
-                      icon={require('./../Assets/Icons/receive_white_icon.png')}
+                      style={{
+                        height: hp(7),
+                        width: wp(50),
+                        transform: [{rotate: '90deg'}],
+                      }}
+                      icon="master_card_circles.png"
                     />
-                    <Fr_text color="#fff">Send</Fr_text>
-                  </View>
-                </TouchableNativeFeedback>
-                <TouchableNativeFeedback onPress={this.receive}>
-                  <View
+
+                    {this.wallet_balance(
+                      this.wallet.naira,
+                      this.wallet.profits,
+                    )}
+
+                    <Bg_view
+                      no_bg
+                      horizontal
+                      style={{
+                        justifyContent: 'space-evenly',
+                        paddingTop: hp(user._id === Admin_id ? 1 : 2),
+                      }}>
+                      <TouchableWithoutFeedback onPress={this.topup}>
+                        <View
+                          style={{
+                            padding: wp(5.6),
+                            alignItems: 'center',
+                            paddingHorizontal: wp(2.8),
+                          }}>
+                          <Icon
+                            icon="send_white_icon.png"
+                            style={{height: wp(10), width: wp(10)}}
+                          />
+                          <Fr_text color="#fff">Top-up</Fr_text>
+                        </View>
+                      </TouchableWithoutFeedback>
+                      <TouchableWithoutFeedback onPress={this.withdraw}>
+                        <View
+                          style={{
+                            padding: wp(5.6),
+                            alignItems: 'center',
+                            paddingHorizontal: wp(2.8),
+                          }}>
+                          <Icon
+                            icon="receive_white_icon.png"
+                            style={{height: wp(10), width: wp(10)}}
+                          />
+                          <Fr_text color="#fff">Withdraw</Fr_text>
+                        </View>
+                      </TouchableWithoutFeedback>
+                      {user._id === Admin_id ? (
+                        <TouchableWithoutFeedback onPress={this.paycheck}>
+                          <View
+                            style={{
+                              padding: wp(5.6),
+                              alignItems: 'center',
+                              paddingHorizontal: wp(2.8),
+                            }}>
+                            <Icon
+                              icon="paycheck.png"
+                              style={{height: wp(10), width: wp(10)}}
+                            />
+                            <Fr_text color="#fff">Paycheck</Fr_text>
+                          </View>
+                        </TouchableWithoutFeedback>
+                      ) : null}
+                    </Bg_view>
+                  </Bg_view>
+                  <Bg_view
                     style={{
-                      padding: wp(5.6),
-                      alignItems: 'center',
-                      paddingHorizontal: wp(2.8),
+                      elevation: 10,
+                      shadowColor: '#000',
+                      borderRadius: wp(4),
+                      margin: wp(2.8),
                     }}>
-                    <Icon
-                      icon={require('./../Assets/Icons/send_white_icon.png')}
-                    />
-                    <Fr_text color="#fff">Receive</Fr_text>
-                  </View>
-                </TouchableNativeFeedback>
-                <TouchableNativeFeedback onPress={this.convert}>
-                  <View
-                    style={{
-                      padding: wp(5.6),
-                      alignItems: 'center',
-                      paddingHorizontal: wp(2.8),
-                    }}>
-                    <Icon
-                      icon={require('./../Assets/Icons/convert_icon.png')}
-                    />
-                    <Fr_text color="#fff">Convert</Fr_text>
-                  </View>
-                </TouchableNativeFeedback>
-              </Bg_view>
-            </Bg_view>
-            <Bg_view
-              horizontal
-              style={{
-                justifyContent: 'space-between',
-                padding: wp(5.6),
-                paddingTop: wp(2.8),
-                paddingBottom: hp(1.4),
-              }}>
-              <Bg_view style={{paddingTop: hp(4)}}>
-                <Fr_text opacity={0.8}>USD Dollar</Fr_text>
-                <Fr_text bold size={wp(4.5)}>{`1.00 USD`}</Fr_text>
-              </Bg_view>
-              <Icon
-                action={this.cool_modal && this.cool_modal.toggle_show_modal}
-                icon={require('./../Assets/Icons/currency_convert_icon.png')}
-              />
-              <Bg_view style={{paddingTop: hp(4)}}>
-                <Fr_text opacity={0.8}>NGN Naira</Fr_text>
-                <Fr_text bold size={wp(4.5)}>{`600.00 NGN`}</Fr_text>
-              </Bg_view>
-            </Bg_view>
-            <Bg_view
-              horizontal
-              style={{paddingHorizontal: wp(2.8), alignItems: 'center'}}>
-              <Small_btn title="sell" action={this.sell} />
-              <Small_btn title="buy" action={this.buy} inverted />
-              <Icon
-                icon={require('./../Assets/Icons/change_currency_icon.png')}
-                action={this.cool_modal && this.cool_modal.toggle_show_modal}
-                style={{height: hp(7.5)}}
-              />
-            </Bg_view>
-            <Line />
-            <Bg_view
-              style={{marginVertical: hp(2.8), paddingHorizontal: wp(5.6)}}>
-              <Fr_text capitalise bold size={wp(5)}>
-                transaction history
-              </Fr_text>
-              <Bg_view>
-                {transactions ? (
-                  transactions.length ? (
-                    transactions.map(transaction => (
-                      <Transaction
-                        transaction={transaction}
-                        key={transaction._id}
+                    <Bg_view
+                      horizontal
+                      style={{
+                        justifyContent: 'space-between',
+                        paddingTop: wp(2.8),
+                        paddingBottom: hp(1.4),
+                      }}>
+                      <TouchableWithoutFeedback onPress={this.sell}>
+                        <View
+                          style={{
+                            paddingTop: hp(4),
+                            paddingHorizontal: wp(5.6),
+                          }}>
+                          <Fr_text opacity={0.8}>
+                            {currency_full.alphabetic_name}
+                          </Fr_text>
+                          <Fr_text bold size={wp(4.5)}>{`${value || 0} ${
+                            currency_full?.alphabetic_name
+                          }`}</Fr_text>
+                        </View>
+                      </TouchableWithoutFeedback>
+                      <Icon
+                        icon="currency_convert_icon.png"
+                        style={{height: wp(13), width: wp(13)}}
                       />
-                    ))
-                  ) : (
-                    <List_empty text="You don't have any transaction at the moment" />
-                  )
-                ) : (
-                  <Loadindicator />
-                )}
-              </Bg_view>
+                      <TouchableWithoutFeedback
+                        onPress={this.toggle_to_currency}>
+                        <View
+                          style={{
+                            paddingTop: hp(4),
+                            paddingHorizontal: wp(5.6),
+                          }}>
+                          <Fr_text opacity={0.8}>{'NGN'}</Fr_text>
+                          <Fr_text bold size={wp(4.5)}>
+                            {`${
+                              Number((value || 0) * (rate || 0)).toFixed(2) || 0
+                            } ${'NGN'}`}
+                          </Fr_text>
+                        </View>
+                      </TouchableWithoutFeedback>
+                    </Bg_view>
+                    <Bg_view
+                      horizontal
+                      style={{
+                        paddingHorizontal: wp(2.8),
+                        alignItems: 'center',
+                      }}>
+                      <Small_btn title="sell" action={this.sell} />
+                      <Small_btn title="buy" action={this.buy} inverted />
+                    </Bg_view>
+                  </Bg_view>
+                  <Line />
+                  {refreshing_txs ? null : (
+                    <Transactions
+                      user={user}
+                      ref={transactions => (this.transactions = transactions)}
+                      refresh={this.refresh_txs}
+                      navigation={navigation}
+                    />
+                  )}
+                </Bg_view>
+              </ScrollView>
+
+              <Cool_modal
+                ref={paycheck_modal => (this.paycheck_modal = paycheck_modal)}>
+                <Paycheck user={user} close_modal={this.paycheck} />
+              </Cool_modal>
+
+              <Cool_modal
+                ref={cool_modal_buy => (this.cool_modal_buy = cool_modal_buy)}>
+                <Buy
+                  user={user}
+                  default_value={{currency: currency_full, value, rate}}
+                  close_modal={this.buy}
+                  navigation={navigation}
+                />
+              </Cool_modal>
+              <Cool_modal ref={topup_modal => (this.topup_modal = topup_modal)}>
+                <Topup
+                  default_value={value}
+                  decorator={this.topup_modal?.toggle_show_modal}
+                />
+              </Cool_modal>
+
+              <Cool_modal
+                ref={withdraw_modal => (this.withdraw_modal = withdraw_modal)}>
+                <Withdraw
+                  wallet={this.wallet}
+                  decorator={this.withdraw_modal?.toggle_show_modal}
+                />
+              </Cool_modal>
+
+              <Cool_modal
+                ref={to_currency_modal =>
+                  (this.to_currency_modal = to_currency_modal)
+                }>
+                <Currencies
+                  select={this.set_to_currency}
+                  close_modal={this.to_currency_modal?.toggle_show_modal}
+                />
+              </Cool_modal>
+
+              <Cool_modal
+                ref={cool_modal_sell_value =>
+                  (this.cool_modal_sell_value = cool_modal_sell_value)
+                }>
+                <Amount_to_sell
+                  ref={amount_to_sell => (this.amount_to_sell = amount_to_sell)}
+                  user={user}
+                  default_value={{currency: currency_full, value, rate}}
+                  set_rate_wallet={this.set_rate}
+                  set_value_wallet={this.set_value}
+                  set_currency_wallet={this.set_currency}
+                  close_modal={this.sell}
+                  navigation={navigation}
+                />
+              </Cool_modal>
             </Bg_view>
-          </Bg_view>
-        </ScrollView>
-        <Cool_modal ref={cool_modal => (this.cool_modal = cool_modal)}>
-          <Bg_view
-            style={{
-              minHeight: hp(25),
-              paddingHorizontal: wp(11.2),
-              paddingVertical: hp(5.6),
-              borderTopRightRadius: wp(7.5),
-              borderTopLeftRadius: wp(7.5),
-            }}
-            background_color="#eee">
-            <Bg_view no_bg style={{alignItems: 'flex-end'}}>
-              <Icon
-                icon={require('./../Assets/Icons/close_icon.png')}
-                action={this.cool_modal && this.cool_modal.toggle_show_modal}
-              />
-            </Bg_view>
-            <Fr_text
-              bold="900"
-              size={wp(6.2)}
-              style={{marginBottom: hp(2.8)}}
-              capitalise>
-              change currency
-            </Fr_text>
-            <Fr_text size={wp(5.6)} opacity={0.8}>
-              From
-            </Fr_text>
-            <Select_currency
-              selected_currency={from_currency}
-              select={this.set_from_currency}
-            />
-            <Fr_text size={wp(5.6)} opacity={0.8}>
-              To
-            </Fr_text>
-            <Select_currency
-              selected_currency={to_currency}
-              select={this.set_to_currency}
-            />
-          </Bg_view>
-        </Cool_modal>
-      </Bg_view>
+          );
+        }}
+      </User.Consumer>
     );
   };
 }
 
 export default Wallet;
+export {alphabetic_naming, currencies};

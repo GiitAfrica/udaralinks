@@ -1,5 +1,5 @@
 import React from 'react';
-import {TouchableNativeFeedback, View} from 'react-native';
+import {TouchableWithoutFeedback, View} from 'react-native';
 import {hp, wp} from '../utils/dimensions';
 import Bg_view from './Bg_view';
 import Fr_text from './Fr_text';
@@ -19,7 +19,7 @@ class Payment extends React.Component {
     let {icon, title, text} = payment;
 
     return (
-      <TouchableNativeFeedback onPress={this.go_to_payment}>
+      <TouchableWithoutFeedback onPress={this.go_to_payment}>
         <View>
           <Bg_view
             horizontal
@@ -28,6 +28,8 @@ class Payment extends React.Component {
               padding: wp(2.8),
               borderRadius: wp(4),
               marginBottom: hp(1.4),
+              elevation: 10,
+              shadowColor: '#000',
             }}>
             <Icon style={{height: wp(10)}} icon={icon} />
             <Bg_view flex style={{marginLeft: wp(2.8)}}>
@@ -36,13 +38,10 @@ class Payment extends React.Component {
               </Fr_text>
               <Fr_text opacity={0.8}>{text}</Fr_text>
             </Bg_view>
-            <Icon
-              icon={require('./../Assets/Icons/forward_arrow_icon.png')}
-              style={{marginLeft: wp(2.8)}}
-            />
+            <Icon icon="forward_arrow_icon.png" style={{marginLeft: wp(2.8)}} />
           </Bg_view>
         </View>
-      </TouchableNativeFeedback>
+      </TouchableWithoutFeedback>
     );
   };
 }

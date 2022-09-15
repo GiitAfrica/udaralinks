@@ -1,5 +1,4 @@
 import React from 'react';
-import {ScrollView} from 'react-native';
 import Bg_view from './Bg_view';
 
 class Swipe_indicator extends React.Component {
@@ -12,7 +11,7 @@ class Swipe_indicator extends React.Component {
   }
 
   render_indicators = () => {
-    let {count} = this.props;
+    let {count, circle} = this.props;
     let {current} = this.state;
 
     let arr = new Array();
@@ -22,20 +21,22 @@ class Swipe_indicator extends React.Component {
       <Bg_view
         key={j}
         style={{
-          height: 5,
-          width: current === j ? 30 : 15,
-          borderRadius: 2,
-          backgroundColor: current === j ? '#FF6905' : '#ccc',
+          height: circle ? 7.5 : 5,
+          width: circle ? 7.5 : current === j ? 30 : 15,
+          borderRadius: circle ? 7.5 : 2,
+          backgroundColor: current === j ? '#FF6905' : circle ? '#333' : '#ccc',
           margin: 3,
         }}></Bg_view>
     ));
   };
 
   render = () => {
+    if (!this.props.count) return null;
+
     return (
-      // <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
-      <Bg_view horizontal>{this.render_indicators()}</Bg_view>
-      // </ScrollView>
+      <Bg_view no_bg horizontal>
+        {this.render_indicators()}
+      </Bg_view>
     );
   };
 }

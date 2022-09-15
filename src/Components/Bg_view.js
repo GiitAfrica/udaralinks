@@ -7,13 +7,29 @@ class Bg_view extends React.Component {
   }
 
   render = () => {
-    let {children, style, flex, accent, background_color, no_bg, horizontal} =
-      this.props;
+    let {
+      children,
+      no_centralise,
+      style,
+      flex,
+      accent,
+      background_color,
+      no_bg,
+      horizontal,
+      shadowed,
+    } = this.props;
 
     if (!style) style = new Object();
+    if (shadowed) {
+      style.shadowColor = '#000';
+      style.elevation = 5;
+    }
     if (flex) style.flex = 1;
     if (accent) style.backgroundColor = '#FF6905';
-    if (horizontal) style.flexDirection = 'row';
+    if (horizontal) {
+      style.flexDirection = 'row';
+      style.alignItems = no_centralise ? null : 'center';
+    }
     if (background_color) style.backgroundColor = background_color;
     if (no_bg) style.backgroundColor = 'transparent';
 

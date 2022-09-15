@@ -1,6 +1,6 @@
 import React from 'react';
 import {ActivityIndicator} from 'react-native';
-import {hp} from '../utils/dimensions';
+import {hp, wp} from '../utils/dimensions';
 import Bg_view from './Bg_view';
 
 class Loadindicator extends React.Component {
@@ -9,9 +9,21 @@ class Loadindicator extends React.Component {
   }
 
   render = () => {
+    let {color, style} = this.props;
+
     return (
-      <Bg_view no_bg style={{minHeight: hp(10), justifyContent: 'center'}}>
-        <ActivityIndicator color="#FF6905" size="large" />
+      <Bg_view
+        no_bg
+        style={{
+          minHeight: hp(10),
+          marginLeft: color ? wp(1.4) : null,
+          justifyContent: 'center',
+          ...style,
+        }}>
+        <ActivityIndicator
+          color={color || '#FF6905'}
+          size={color ? 'small' : 'large'}
+        />
       </Bg_view>
     );
   };

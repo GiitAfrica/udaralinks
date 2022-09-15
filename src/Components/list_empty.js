@@ -1,11 +1,15 @@
 import React from 'react';
 import {wp} from '../utils/dimensions';
+import Bg_view from './Bg_view';
 import Fr_text from './Fr_text';
 
-const List_empty = ({text}) => (
-  <Fr_text centralise size={wp(5)} color={'#aaa'} style={{margin: wp(6.2)}}>
-    {text}
-  </Fr_text>
+const List_empty = ({text, data}) => (
+  <Bg_view no_bg>
+    <Fr_text italic centralise size={wp(5)} style={{margin: wp(7.5)}}>
+      {text || 'Nothing'}
+    </Fr_text>
+    {data}
+  </Bg_view>
 );
 
 export default List_empty;

@@ -3,22 +3,35 @@ import {TouchableNativeFeedback, View} from 'react-native';
 import {wp} from '../utils/dimensions';
 import Fr_text from './Fr_text';
 
-class Text_btn extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {};
-  }
-  render() {
-    let {action} = this.props;
-
-    return (
-      <TouchableNativeFeedback onPress={action}>
-        <View style={{padding: wp(1.4)}}>
-          <Fr_text>Resend</Fr_text>
-        </View>
-      </TouchableNativeFeedback>
-    );
-  }
-}
+const Text_btn = ({
+  action,
+  text,
+  size,
+  disabled,
+  bold,
+  capitalise,
+  centralise,
+  style,
+  accent,
+  italic,
+}) => (
+  <TouchableNativeFeedback disabled={disabled} onPress={action}>
+    <View
+      style={{
+        padding: wp(1.4),
+        ...style,
+      }}>
+      <Fr_text
+        centralise={centralise}
+        accent={accent}
+        size={size}
+        capitalise={capitalise}
+        italic={italic}
+        bold={bold}>
+        {text}
+      </Fr_text>
+    </View>
+  </TouchableNativeFeedback>
+);
 
 export default Text_btn;

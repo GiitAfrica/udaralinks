@@ -1,11 +1,13 @@
 import React from 'react';
 import {TextInput, ScrollView} from 'react-native';
 import {hp, wp} from '../utils/dimensions';
+import {get_request} from '../utils/services';
 import Bg_view from './Bg_view';
 import Currency_item from './currency_item';
 import Icon from './Icon';
 import List_empty from './list_empty';
 import Loadindicator from './load_indicator';
+import Search_input from './search_input';
 
 class Currencies extends React.Component {
   constructor(props) {
@@ -15,51 +17,56 @@ class Currencies extends React.Component {
   }
 
   componentDidMount = async () => {
-    let currencies = new Array(
-      {name: 'Naira', symbol: 'N'},
-      {name: 'USD Dollar', symbol: '$'},
-    );
-    setTimeout(() => {
-      this.setState({currencies});
-    }, 1500);
+    let currencies = await get_request('currencies');
+    this.setState({currencies});
   };
 
+  clear_search = () => this.setState({search_value: ''});
+
+  set_search_value = search_value => this.setState({search_value});
+
   render = () => {
-    let {close_modal, select} = this.props;
-    console.log(this.props);
-    let {currencies} = this.state;
+    let {close_modal, select, exclude} = this.props;
+    let {currencies, search_value} = this.state;
+
+    if (!exclude) exclude = new Array();
 
     return (
-      <Bg_view background_color="#eee" style={{paddingVertical: hp(2.8)}}>
+      <Bg_view
+        style={{paddingVertical: hp(2.8), elevation: 10, shadowColor: '#000'}}>
         <Icon
-          icon={require('./../Assets/Icons/close_icon.png')}
+          icon="close_icon.png"
           action={() => close_modal && close_modal()}
-          style={{alignSelf: 'flex-end', marginHorizontal: wp(5.6)}}
-        />
-        <Bg_view
           style={{
-            borderColor: '#eee',
-            borderWidth: 1,
-            borderRadius: wp(2.8),
-            height: hp(7.5),
+            alignSelf: 'flex-end',
             marginHorizontal: wp(5.6),
-            alignItems: 'center',
-            paddingHorizontal: wp(2.8),
           }}
-          horizontal>
-          <TextInput style={{flex: 1, paddingRight: wp(2.8)}} />
-          <Icon icon={require('./../Assets/Icons/search_icon.png')} />
-        </Bg_view>
+        />
+        <Search_input
+          search_value={search_value}
+          set_search_value={this.set_search_value}
+          clear_search={this.clear_search}
+          no_autofocus
+        />
         <ScrollView showVerticalScrollIndicator={false}>
           {currencies ? (
             currencies.length ? (
-              currencies.map(currency => (
-                <Currency_item
-                  currency={currency}
-                  select={select}
-                  key={currency.name}
-                />
-              ))
+              currencies.map(currency =>
+                exclude.includes(currency.name) ||
+                (search_value &&
+                  !currency.name
+                    .toLowerCase()
+                    .includes(search_value.toLowerCase().trim())) ? null : (
+                  <Currency_item
+                    currency={currency}
+                    select={(currency, full) => {
+                      select(currency, full);
+                      close_modal && close_modal();
+                    }}
+                    key={currency.name}
+                  />
+                ),
+              )
             ) : (
               <List_empty text="No currencies" />
             )

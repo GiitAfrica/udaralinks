@@ -1,9 +1,9 @@
 import React from 'react';
-import {Image} from 'react-native';
-import {wp} from '../utils/dimensions';
+import {hp, wp} from '../utils/dimensions';
 import {sentence} from '../utils/functions';
 import Bg_view from './Bg_view';
 import Fr_text from './Fr_text';
+import Icon from './Icon';
 
 class Onboard extends React.Component {
   constructor(props) {
@@ -16,7 +16,7 @@ class Onboard extends React.Component {
 
     return (
       <Bg_view style={{alignItems: 'center', marginTop: 100, width: wp()}}>
-        <Image source={icon} />
+        <Icon icon={icon} style={{width: wp(85), height: hp(30)}} />
         <Bg_view style={{marginTop: 40, alignItems: 'center'}}>
           <Fr_text capitalise bold size={wp(5)}>
             {main_text}

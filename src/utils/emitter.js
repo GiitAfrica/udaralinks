@@ -4,14 +4,18 @@ class Emitter {
   }
 
   emit = async (event, data, callback) => {
-    let events = this.events[event] || new Array();
+    let events = this.events[event] || new Array(),
+      return_ = new Array();
 
     for (let e = 0; e < events.length; e++) {
       let listener = events[e];
-      listener && (await listener(data));
+      return_.push(listener && (await listener(data)));
     }
 
-    callback && typeof callback === 'function' && (await callback());
+    if (return_.find(r => r))
+      callback &&
+        typeof callback === 'function' &&
+        (await callback(return_[0]));
   };
 
   listen = (event, listener) => {

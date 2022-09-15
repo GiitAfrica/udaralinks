@@ -11,7 +11,17 @@ class Text_input extends React.Component {
     this.state = {};
   }
   render() {
-    let {label, placeholder, type, on_change_text, value} = this.props;
+    let {
+      label,
+      placeholder,
+      disabled,
+      type,
+      on_change_text,
+      right_icon,
+      secure,
+      value,
+      left_icon,
+    } = this.props;
 
     return (
       <Bg_view style={{marginBottom: hp(4)}}>
@@ -30,21 +40,25 @@ class Text_input extends React.Component {
             alignItems: 'center',
             borderBottomColor: '#ccc',
           }}>
+          {left_icon}
           <TextInput
             placeholder={placeholder && sentence(placeholder)}
-            placeholderStyle={{fontStyle: 'italic'}}
             keyboardType={type || 'default'}
             onChangeText={on_change_text}
+            secureTextEntry={secure}
+            placeholderStyle={{fontStyle: 'italic'}}
+            editable={!!!disabled}
             value={value}
             style={{
               flex: 1,
               fontSize: wp(4.5),
-              color: 'maroon',
+              color: '#28100B',
               marginRight: wp(1.4),
               width: '100%',
               fontWeight: 'bold',
             }}
           />
+          {right_icon}
         </Bg_view>
       </Bg_view>
     );

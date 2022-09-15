@@ -47,6 +47,7 @@ class Otp_counter extends React.Component {
           </Fr_text>
         ) : (
           <Text_btn
+            text="Resend"
             action={() => {
               resend_otp && resend_otp();
               this.restart_counter();

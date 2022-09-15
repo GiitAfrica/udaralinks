@@ -1,7 +1,12 @@
 import React from 'react';
-import {ScrollView} from 'react-native';
+import {
+  ScrollView,
+  StatusBar,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
+import {Admin_id, emitter, User} from '../../Udara';
 import Bg_view from '../Components/Bg_view';
-import Currency from '../Components/currency';
 import Fr_text from '../Components/Fr_text';
 import Icon from '../Components/Icon';
 import Listfooter from '../Components/listfooter';
@@ -11,182 +16,183 @@ import {hp, wp} from '../utils/dimensions';
 class Home extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {};
+    this.state = {new_txs: new Array()};
   }
 
-  currencies = new Array(
-    {
-      name: 'euro',
-      icon: require('./../Assets/Icons/euro_icon.png'),
-      balances: {ngn: 0, base: 0},
-    },
-    {
-      name: 'pound',
-      icon: require('./../Assets/Icons/pound_icon.png'),
-      balances: {ngn: 0, base: 0},
-    },
-    {
-      name: 'dollar',
-      icon: require('./../Assets/Icons/dollar_icon.png'),
-      balances: {ngn: 0, base: 0},
-    },
-  );
+  componentDidMount = () => {
+    this.new_transaction = tx => {
+      let {new_txs} = this.state;
+      new_txs.push(tx._id);
+      this.setState({new_txs});
+    };
 
-  payment_types = new Array(
-    {
-      title: 'bank\ntransfer',
-      icon: require('./../Assets/Icons/bank_icon.png'),
-    },
-    {
-      title: 'online\nwallet',
-      icon: require('./../Assets/Icons/wallet_icon.png'),
-    },
-    {
-      title: 'bank\ndeposit',
-      icon: require('./../Assets/Icons/bank_deposit_icon.png'),
-    },
-  );
+    this.transaction_mounted = tx_id => {
+      let {new_txs} = this.state;
+      if (!new_txs.length) return;
+
+      new_txs = new_txs.filter(tx => tx !== tx_id);
+      this.setState({new_txs: new Array(...new_txs)});
+    };
+
+    emitter.listen('new_transaction', this.new_transaction);
+    emitter.listen('transaction_mounted', this.transaction_mounted);
+  };
+
+  componentWillUnmount = () => {
+    emitter.remove_listener('transaction_mounted', this.transaction_mounted);
+    emitter.remove_listener('new_transaction', this.new_transaction);
+  };
 
   payments = new Array(
     {
       title: 'Pay a Bill',
-      icon: require('./../Assets/Icons/paybill_icon.png'),
+      icon: 'paybill_icon.png',
       text: 'Look after your necessities',
     },
     {
       title: 'Buy Airtime',
       text: 'Easy phone recharge',
-      icon: require('./../Assets/Icons/paybill_icon.png'),
+      icon: 'paybill_icon.png',
     },
   );
 
   render() {
-    return (
-      <ScrollView showHorizontalScrollIndicator={false}>
-        <Bg_view flex background_color="#eee">
-          <Bg_view
-            no_bg
-            horizontal
-            style={{justifyContent: 'space-between', padding: wp(5.6)}}>
-            <Icon
-              icon={require('./../Assets/Icons/Acccount_orange_icon.png')}
-            />
-            <Fr_text size={wp(4.5)}>Paul Smith</Fr_text>
-            <Icon icon={require('./../Assets/Icons/notification_icon.png')} />
-          </Bg_view>
-          <Bg_view
-            style={{
-              height: wp(50),
-              backgroundColor: 'purple',
-              marginHorizontal: wp(5.6),
-              borderRadius: wp(5.6),
-            }}>
-            <Bg_view
-              style={{
-                justifyContent: 'space-between',
-                padding: wp(4),
-              }}
-              horizontal
-              no_bg>
-              <Bg_view no_bg>
-                <Fr_text color="#fff">Udara Wallet</Fr_text>
-                <Fr_text
-                  color="#fff"
-                  style={{marginTop: hp(2.8)}}
-                  size={wp(4)}
-                  bold="600">
-                  Total balance
-                </Fr_text>
-                <Fr_text color="#fff" bold size={wp(7.5)}>
-                  1,000,000 NGN
-                </Fr_text>
-                <Fr_text color="#fff" capitalise>
-                  paul smith
-                </Fr_text>
-              </Bg_view>
-              <Icon
-                style={{marginTop: hp(5.6)}}
-                icon={require('./../Assets/Icons/naira_home_page.png')}
-              />
-            </Bg_view>
-            <Bg_view no_bg style={{alignSelf: 'flex-end'}}>
-              <Icon
-                style={{marginTop: hp(1.0), marginRight: wp(5.6)}}
-                icon={require('./../Assets/Icons/master_card_circles.png')}
-              />
-            </Bg_view>
-          </Bg_view>
+    let {navigation} = this.props;
+    let {new_txs} = this.state;
 
-          <Bg_view
-            no_bg
-            style={{justifyContent: 'space-evenly', marginVertical: hp(4)}}
-            horizontal>
-            {this.currencies.map(currency => (
-              <Currency currency={currency} key={currency.name} />
-            ))}
-          </Bg_view>
-          <Bg_view
-            style={{paddingHorizontal: wp(5.6), marginTop: hp(1.4)}}
-            no_bg>
-            <Bg_view no_bg>
-              <Fr_text accent bold size={wp(5.6)}>
-                Buy/Sell Currency
-              </Fr_text>
-              <Bg_view
-                no_bg
-                style={{justifyContent: 'space-evenly', marginVertical: hp(4)}}
-                horizontal>
-                {this.payment_types.map(payment_type => (
+    return (
+      <User.Consumer>
+        {user => {
+          let {wallet, username, _id} = user;
+          let {fav_currency, profits} = wallet;
+
+          return (
+            <Bg_view flex>
+              <ScrollView showsVerticalScrollIndicator={false}>
+                <StatusBar backgroundColor="#fff" barStyle="dark-content" />
+                <Bg_view flex>
                   <Bg_view
-                    key={payment_type.title}
+                    no_bg
+                    horizontal
                     style={{
-                      paddingLeft: wp(4),
-                      paddingRight: wp(5.6),
-                      paddingVertical: hp(1.4),
-                      alignItems: 'flex-start',
-                      borderRadius: wp(4),
-                      minWidth: wp(24),
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      padding: wp(2.8),
                     }}>
-                    <Icon icon={payment_type.icon} />
-                    <Fr_text
-                      capitalise
-                      size={wp(4)}
-                      style={{marginVertical: hp(0.7)}}>
-                      {payment_type.title}
+                    <Icon
+                      icon="acccount_orange_icon.png"
+                      action={() => navigation.navigate('account')}
+                    />
+                    <Fr_text capitalise size={wp(4.5)}>
+                      {username}
                     </Fr_text>
+                    {new_txs.length ? (
+                      <Icon
+                        icon="notification_icon.png"
+                        action={() => {
+                          navigation.navigate('wallet'),
+                            this.setState({new_txs: new Array()});
+                        }}
+                      />
+                    ) : (
+                      <View style={{width: wp(5)}} />
+                    )}
                   </Bg_view>
-                ))}
-              </Bg_view>
-              <Bg_view
-                style={{
-                  justifyContent: 'space-around',
-                  alignItems: 'center',
-                  padding: hp(1.4),
-                  borderRadius: wp(4),
-                }}
-                horizontal>
-                <Bg_view no_bg />
-                <Fr_text size={wp(4)}>All payment methods</Fr_text>
-                <Icon
-                  icon={require('./../Assets/Icons/forward_arrow_icon.png')}
-                  style={{marginLeft: wp(2.8)}}
-                />
-              </Bg_view>
+                  <TouchableWithoutFeedback
+                    onPress={() =>
+                      navigation.navigate('wallet', {currency: 'naira'})
+                    }>
+                    <View>
+                      <Bg_view
+                        style={{
+                          height: wp(52.5),
+                          backgroundColor: '#28100B',
+                          marginHorizontal: wp(5.6),
+                          borderRadius: wp(5.6),
+                        }}>
+                        <Bg_view
+                          style={{
+                            justifyContent: 'space-between',
+                            padding: wp(4),
+                          }}
+                          horizontal
+                          no_bg>
+                          <Bg_view no_bg>
+                            <Fr_text color="#fff">Udara Wallet</Fr_text>
+                            <Fr_text
+                              color="#fff"
+                              style={{marginTop: hp(2.8)}}
+                              size={wp(4)}
+                              bold="600">
+                              Total balance
+                            </Fr_text>
+                            <Fr_text color="#fff" bold="900" size={wp(6.5)}>
+                              {`${wallet.naira.toFixed(2)} NGN`}
+                            </Fr_text>
+                            <Bg_view no_bg>
+                              <Fr_text
+                                bold={_id === Admin_id && profits && '600'}
+                                color="#fff"
+                                capitalise>
+                                {_id === Admin_id && profits
+                                  ? 'admin balance'
+                                  : username}
+                              </Fr_text>
+                              {_id === Admin_id && profits ? (
+                                <Fr_text bold size={wp(5)} color="#fff">
+                                  {`${profits} NGN`}
+                                </Fr_text>
+                              ) : null}
+                            </Bg_view>
+                          </Bg_view>
+                          <Icon
+                            style={{
+                              marginTop: hp(5.6),
+                              height: wp(20),
+                              width: wp(15),
+                              borderRadius: wp(2.8),
+                            }}
+                            icon={
+                              fav_currency === 'naira'
+                                ? 'naira_home_page.png'
+                                : `${fav_currency}_icon.png`
+                            }
+                          />
+                        </Bg_view>
+                        <Bg_view no_bg style={{alignSelf: 'flex-end'}}>
+                          <Icon
+                            style={{
+                              marginRight: wp(5),
+                              marginTop: hp(0.2),
+                              height: hp(7),
+                              width: wp(50),
+                            }}
+                            icon="master_card_circles.png"
+                          />
+                        </Bg_view>
+                      </Bg_view>
+                    </View>
+                  </TouchableWithoutFeedback>
+                  <Bg_view style={{paddingHorizontal: wp(5.6)}}>
+                    <Bg_view no_bg style={{marginTop: hp(1)}}>
+                      <Fr_text accent bold size={wp(5.6)}>
+                        Payments
+                      </Fr_text>
+                      <Bg_view no_bg style={{padding: wp(2.8)}}>
+                        {this.payments.map(payment => (
+                          <Payment payment={payment} key={payment.title} />
+                        ))}
+                      </Bg_view>
+                    </Bg_view>
+                  </Bg_view>
+
+                  <Listfooter />
+                </Bg_view>
+              </ScrollView>
             </Bg_view>
-            <Bg_view no_bg style={{marginTop: hp(4)}}>
-              <Fr_text accent bold size={wp(5.6)}>
-                Payments
-              </Fr_text>
-              <Bg_view no_bg style={{padding: wp(2.8)}}>
-                {this.payments.map(payment => (
-                  <Payment payment={payment} key={payment.title} />
-                ))}
-              </Bg_view>
-            </Bg_view>
-          </Bg_view>
-          <Listfooter />
-        </Bg_view>
-      </ScrollView>
+          );
+        }}
+      </User.Consumer>
     );
   }
 }

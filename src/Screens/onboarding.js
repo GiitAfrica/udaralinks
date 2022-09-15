@@ -5,13 +5,6 @@ import Onboard from '../Components/onboard';
 import Stretched_button from '../Components/Stretched_button';
 import Swipe_indicator from '../Components/Swipe_indicator';
 import {hp} from '../utils/dimensions';
-import Congratulation from './Congratulation';
-import Home from './Home';
-import Login from './Login';
-import Market from './Market';
-import Registration from './Registration';
-import Verification from './Verification';
-import Wallet from './Wallet';
 
 class Onboarding extends React.Component {
   constructor(props) {
@@ -23,47 +16,18 @@ class Onboarding extends React.Component {
   componentDidMount = () => {
     let {navigation} = this.props;
 
-    let onboardings = [
-      {
-        _id: 1,
-        main_text: 'best rates',
-        sub_text: 'enjoy best market rates when you buy your currency.',
-        icon: require('./../Assets/Icons/onboarding_1.png'),
-      },
-      {
-        _id: 2,
-        main_text: 'buy currency',
-        sub_text: 'exchange any currencies to naira for low rates.',
-        icon: require('./../Assets/Icons/onboarding_2.png'),
-      },
-      {
-        _id: 3,
-        main_text: 'fully automated',
-        sub_text:
-          'make everyday sales of currencies for instant naira from the app to your Nigerian back account.',
-        icon: require('./../Assets/Icons/onboarding_3.png'),
-      },
-      {
-        _id: 4,
-        main_text: 'payment secured',
-        sub_text: 'your transactions are secured on the app with ease.',
-        icon: require('./../Assets/Icons/onboarding_4.png'),
-      },
-    ];
-
-    this.setState({onboardings});
-
     this.screen = 'splash';
     BackHandler.addEventListener('hardwareBackPress', () => {
       let is_focused = navigation.isFocused();
       is_focused && BackHandler.exitApp();
-
+ 
       return is_focused;
     });
   };
 
   get_started = () => {
-    console.log('getting started');
+    let {navigation} = this.props;
+    navigation.navigate('login_et_signup');
   };
 
   swipe_index = ({contentOffset, layoutMeasurement}) => {
@@ -76,14 +40,10 @@ class Onboarding extends React.Component {
   };
 
   render = () => {
-    let {onboardings, current_index} = this.state;
+    let {current_index} = this.state;
+    let {onboardings} = this.props.route.params;
 
-    return true ? (
-      <Bg_view flex>
-        <StatusBar backgroundColor="#eee" barStyle="dark-content" />
-        <Market />
-      </Bg_view>
-    ) : (
+    return (
       <Bg_view flex>
         <StatusBar hidden />
         <ScrollView
