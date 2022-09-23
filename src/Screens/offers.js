@@ -31,6 +31,7 @@ class Offers extends React.Component {
     'completed',
     'declined',
     'in-dispute',
+    'closed',
   );
 
   fetch_offers = async () => {

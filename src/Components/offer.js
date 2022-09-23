@@ -176,12 +176,12 @@ class Offer extends React.Component {
   };
 
   dispute = () => {
-    let {offer, navigation, onsale, user} = this.props;
+    let {offer, navigation, onsale, admin_in_dispute, user} = this.props;
 
-    navigation.navigate('dispute', {offer, onsale, user});
+    navigation.navigate('dispute', {offer, onsale, user, admin_in_dispute});
   };
 
-  aday = 60 * 60 * 24 * 1000;
+  aday = 60 * /* 60 * 24 *  */ 1000;
 
   render = () => {
     let {
@@ -200,6 +200,7 @@ class Offer extends React.Component {
       user,
       onsale,
       status: status__,
+      admin_in_dispute,
       navigation,
     } = this.props;
     let {flag, seller, currency} = onsale;
@@ -208,6 +209,8 @@ class Offer extends React.Component {
     new_messages = new_messages || '';
 
     let disputable = timestamp + this.aday < Date.now();
+
+    if (admin_in_dispute && status === 'closed') return null;
 
     return (
       <TouchableWithoutFeedback onPress={this.toggle_offer_buttons}>
@@ -243,7 +246,7 @@ class Offer extends React.Component {
               </Bg_view>
             </Bg_view>
 
-            {status === 'in-dispute' ? (
+            {no_foot ? null : status === 'in-dispute' ? (
               <Text_btn
                 text="in-dispute"
                 capitalise
@@ -251,8 +254,7 @@ class Offer extends React.Component {
                 accent
                 action={this.dispute}
               />
-            ) : no_foot ? null : status__ &&
-              status__ !== status ? null : show_btns ? (
+            ) : status__ && status__ !== status ? null : show_btns ? (
               <Bg_view style={{alignItems: 'center'}}>
                 {user._id !== seller._id /* loggeduser is buyer */ ? (
                   <Bg_view horizontal style={{justifyContent: 'center'}}>

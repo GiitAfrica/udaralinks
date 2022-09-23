@@ -36,11 +36,12 @@ class Submit_dispute extends React.Component {
       buyer: user._id,
       onsale: onsale._id,
       initiator: user._id,
+      currency: onsale.currency,
       prior_offer_status: offer.status,
     };
 
     let res = await post_request('offer_in_dispute', dispute);
-    console.log(res);
+
     if (res._id) {
       dispute._id = res._id;
       emitter.emit('offer_in_dispute', {offer: offer._id});

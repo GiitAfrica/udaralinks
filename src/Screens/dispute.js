@@ -1,5 +1,6 @@
 import React from 'react';
 import {ScrollView} from 'react-native';
+import Admin_action from '../Components/admin_action';
 import Bg_view from '../Components/Bg_view';
 import Cool_modal from '../Components/cool_modal';
 import Fr_text from '../Components/Fr_text';
@@ -41,9 +42,11 @@ class Dispute extends React.Component {
     navigation.navigate('chat', {offer, onsale});
   };
 
+  admin_action = () => this.admin_action_modal?.toggle_show_modal();
+
   render() {
     let {navigation, route} = this.props;
-    let {user, onsale, offer} = route.params;
+    let {user, admin_in_dispute, onsale, offer} = route.params;
     let {dispute} = this.state;
 
     return (
@@ -102,7 +105,17 @@ class Dispute extends React.Component {
               </Bg_view>
 
               <Bg_view horizontal style={{justifyContent: 'center'}}>
-                {dispute.initiator === user._id ? (
+                {admin_in_dispute ? (
+                  <Small_btn
+                    style={{maxWidth: null, paddingHorizontal: wp(5)}}
+                    title={
+                      offer.prior_offer_status === 'in-escrow'
+                        ? 'refund buyer'
+                        : 'settle seller'
+                    }
+                    action={this.admin_action}
+                  />
+                ) : dispute.initiator === user._id ? (
                   <Small_btn
                     title="resolve"
                     inverted
@@ -120,6 +133,18 @@ class Dispute extends React.Component {
             <Loadindicator />
           )}
 
+          <Cool_modal
+            ref={admin_action_modal =>
+              (this.admin_action_modal = admin_action_modal)
+            }>
+            <Admin_action
+              user={user}
+              onsale={onsale}
+              offer={offer}
+              navigation={navigation}
+              close_modal={this.admin_action}
+            />
+          </Cool_modal>
           <Cool_modal
             ref={cool_modal_resolve =>
               (this.cool_modal_resolve = cool_modal_resolve)
