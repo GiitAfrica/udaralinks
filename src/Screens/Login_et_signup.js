@@ -2,6 +2,7 @@ import React from 'react';
 import {Image, StatusBar} from 'react-native';
 import Bg_view from '../Components/Bg_view';
 import Fr_text from '../Components/Fr_text';
+import Icon from '../Components/Icon';
 import Stretched_button from '../Components/Stretched_button';
 import {hp, wp} from '../utils/dimensions';
 
@@ -23,15 +24,10 @@ class Login_et_signup extends React.Component {
             justifyContent: 'center',
             alignItems: 'center',
           }}>
-          <Fr_text
-            size={wp(10)}
-            style={{
-              marginBottom: hp(15),
-            }}
-            bold="900"
-            accent>
-            Udara
-          </Fr_text>
+          <Icon
+            icon={require('../assets/Icons/udara_logo.png')}
+            style={{height: hp(10), width: wp(50), marginBottom: hp(5)}}
+          />
           <Bg_view
             style={{
               elevation: 10,

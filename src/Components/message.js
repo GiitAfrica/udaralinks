@@ -14,7 +14,7 @@ class Message extends React.Component {
   componentDidMount = () => {};
 
   format_time = timestamp => {
-    let datetime = new Date(timestamp);
+    let datetime = new Date(timestamp || Date.now());
     let now = Date.now(),
       a_day = 60 * 60 * 24 * 1000;
     let time = `${String(datetime.getHours()).padStart(2, '0')}:${String(

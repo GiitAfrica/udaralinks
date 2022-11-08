@@ -1,6 +1,8 @@
 import React from 'react';
-import {ScrollView, TouchableWithoutFeedback, View} from 'react-native';
+import {TouchableWithoutFeedback, View} from 'react-native';
+import {ScrollView} from 'react-native-gesture-handler';
 import {Admin_id, emitter, User} from '../../Udara';
+import Bank_accounts from '../Components/bank_accounts';
 import Bg_view from '../Components/Bg_view';
 import Cool_modal from '../Components/cool_modal';
 import Currencies from '../Components/currencies';
@@ -32,7 +34,7 @@ class Account extends React.Component {
             style={{
               width: wp(42),
               padding: wp(4),
-              maxHeight: hp(15),
+              height: hp(15),
               minHeight: hp(13.5),
               marginVertical: hp(1.4),
               borderRadius: wp(4),
@@ -129,6 +131,17 @@ class Account extends React.Component {
 
     return new Array(
       {
+        title: 'Bank Accounts',
+        action: () => this.add_bank_account?.toggle_show_modal(),
+        right_btn: (
+          <Text_btn
+            accent
+            text={this.user.wallet.bank_accounts}
+            style={{padding: 0, margin: 0}}
+          />
+        ),
+      },
+      {
         title: 'favorite currency',
         value: alphabetic_naming[this.user.wallet.fav_currency],
         action: () => this.fav_currency_modal?.toggle_show_modal(),
@@ -190,28 +203,29 @@ class Account extends React.Component {
     let {navigation} = this.props;
 
     return (
-      <User.Consumer>
+      <User.Consumer style={{flex: 1}}>
         {user => {
-          let {username, _id, email} = user;
+          let {username} = user;
           this.user = user;
 
           return (
-            <ScrollView showsVerticalScrollIndicator={false}>
-              <Bg_view flex style={{padding: wp(5.6)}}>
-                <Fr_text capitalise bold size={wp(7.5)}>
-                  account
-                </Fr_text>
-                <Fr_text caps size={wp(3.5)} opacity={0.8}>
-                  settings
-                </Fr_text>
-                <Bg_view
-                  horizontal
-                  no_bg
-                  no_centralise
-                  style={{
-                    justifyContent: 'space-between',
-                  }}>
-                  <Bg_view no_bg>
+            <Bg_view flex>
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                style={{flex: 1}}>
+                <Bg_view flex style={{padding: wp(5.6)}}>
+                  <Fr_text capitalise bold size={wp(7.5)}>
+                    account
+                  </Fr_text>
+                  <Fr_text caps size={wp(3.5)} opacity={0.8}>
+                    settings
+                  </Fr_text>
+                  <Bg_view
+                    horizontal
+                    no_centralise
+                    style={{
+                      justifyContent: 'space-between',
+                    }}>
                     {this.touch_card({
                       main: 'username',
                       text: username,
@@ -230,28 +244,31 @@ class Account extends React.Component {
                         }),
                     })}
                   </Bg_view>
-                  <Bg_view no_bg>
-                    {this.touch_card({
-                      main: 'email',
-                      text: email || 'Register an email',
-                    })}
-                  </Bg_view>
-                </Bg_view>
-                {this.settings().map(setting => this.setting_item(setting))}
+                  {this.settings().map(setting => this.setting_item(setting))}
 
-                <Cool_modal
-                  ref={fav_currency_modal =>
-                    (this.fav_currency_modal = fav_currency_modal)
-                  }>
-                  <Currencies
-                    select={this.update_fav_currency}
-                    close_modal={() =>
-                      this.fav_currency_modal?.toggle_show_modal()
-                    }
-                  />
-                </Cool_modal>
-              </Bg_view>
-            </ScrollView>
+                  <Cool_modal
+                    ref={fav_currency_modal =>
+                      (this.fav_currency_modal = fav_currency_modal)
+                    }>
+                    <Currencies
+                      select={this.update_fav_currency}
+                      close_modal={() =>
+                        this.fav_currency_modal?.toggle_show_modal()
+                      }
+                    />
+                  </Cool_modal>
+                  <Cool_modal
+                    ref={add_bank_account =>
+                      (this.add_bank_account = add_bank_account)
+                    }>
+                    <Bank_accounts
+                      user={this.user}
+                      toggle={() => this.add_bank_account?.toggle_show_modal()}
+                    />
+                  </Cool_modal>
+                </Bg_view>
+              </ScrollView>
+            </Bg_view>
           );
         }}
       </User.Consumer>

@@ -41,6 +41,7 @@ import Update_email from './src/Screens/update_email';
 import Submit_dispute from './src/Screens/submit_dispute';
 import Dispute from './src/Screens/dispute';
 import Disputes from './src/Screens/disputes';
+import Generate_account_number from './src/Screens/generate_account_number';
 
 const User = React.createContext();
 
@@ -53,6 +54,14 @@ const App_stack = createStackNavigator();
 const Bottom_tab = createBottomTabNavigator();
 
 const Admin_id = 'users~platform_user~3000';
+
+let sock;
+
+const Sock_offer_status = (offer, status, user) => {
+  let payload = {offer, status};
+
+  sock && sock.emit('offer_status', {user, payload});
+};
 
 class App_entry extends React.Component {
   constructor(props) {
@@ -196,6 +205,10 @@ class App_stack_entry extends React.Component {
         <App_stack.Screen name="dispute" component={Dispute} />
         <App_stack.Screen name="disputes" component={Disputes} />
         <App_stack.Screen name="chat" component={Chat} />
+        <App_stack.Screen
+          name="generate_account_number"
+          component={Generate_account_number}
+        />
         <App_stack.Screen name="update_username" component={Update_username} />
         <App_stack.Screen name="verification" component={Verification} />
         <App_stack.Screen name="privacy_policy" component={Privacy_policy} />
@@ -212,10 +225,16 @@ class Udara extends React.Component {
   }
 
   set_socket = user => {
-    let sock = io('http://10.0.2.2:3000');
+    sock = io('https://sock.udaralinksapp.com/');
     sock.on('user_id', socket_id => {
       this.sock = sock;
       sock.emit('user_id_return', {user, socket: socket_id});
+    });
+
+    sock.on('wallet_topup', ({amount}) => {
+      let {wallet} = this.state;
+      wallet.naira += amount;
+      this.setState({wallet});
     });
 
     sock.on('is_typing', chat => emitter.emit('is_typing', chat));
@@ -225,7 +244,6 @@ class Udara extends React.Component {
     sock.on('new_message', message => emitter.emit('new_message', message));
 
     sock.on('offer_status', payload => {
-      console.log(payload);
       emitter.emit('offer_status_update', payload);
     });
 
@@ -317,6 +335,13 @@ class Udara extends React.Component {
       } else toast('Withdraw Failed!');
     };
 
+    this.refresh_wallet = async () => {
+      toast('Refreshing wallet...')
+      let wallet = await get_request(`refresh_wallet/${this.state.wallet._id}`);
+
+      wallet && wallet._id && this.setState({wallet});
+    };
+
     this.deduct_wallet = ({value, currency}) => {
       let {wallet} = this.state;
 
@@ -357,8 +382,8 @@ class Udara extends React.Component {
         },
       });
 
-    this.send_message = message => {
-      this.sock.emit('message', {to: message.to, message});
+    this.send_message = async ({message, chat}) => {
+      this.sock.emit('message', {to: message.to, chat, message});
       message._id = Date.now();
       message.created = Date.now();
 
@@ -379,6 +404,7 @@ class Udara extends React.Component {
     emitter.listen('top_wallet', this.top_wallet);
     emitter.listen('withdraw', this.withdraw);
     emitter.listen('verified', this.verified);
+    emitter.listen('refresh_wallet', this.refresh_wallet);
     emitter.listen('logged_in', this.logged_in);
     emitter.listen('send_message', this.send_message);
     emitter.listen('focus_message_input', this.focus_message_input);
@@ -418,4 +444,4 @@ class Udara extends React.Component {
 }
 
 export default Udara;
-export {emitter, User, Admin_id};
+export {emitter, User, Admin_id, Sock_offer_status, sock};

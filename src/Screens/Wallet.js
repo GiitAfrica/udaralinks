@@ -12,7 +12,7 @@ import Line from '../Components/line';
 import Small_btn from '../Components/small_button';
 import {hp, wp} from '../utils/dimensions';
 import Cool_modal from '../Components/cool_modal';
-import {Admin_id, User} from '../../Udara';
+import {Admin_id, emitter, User} from '../../Udara';
 import Amount_to_sell from '../Components/amount_to_sell';
 import Topup from '../Components/topup';
 import Withdraw from '../Components/withdraw';
@@ -149,12 +149,29 @@ class Wallet extends React.Component {
                     background_color="#240B28">
                     <Icon
                       style={{
-                        height: hp(7),
+                        height: hp(5),
                         width: wp(50),
                         transform: [{rotate: '90deg'}],
                       }}
-                      icon="master_card_circles.png"
+                      icon={require('../../android/app/src/main/assets/Icons/master_card_circles.png')}
                     />
+
+                    <TouchableWithoutFeedback
+                      onPress={() => emitter.emit('refresh_wallet')}>
+                      <View
+                        style={{
+                          backgroundColor: '#fff',
+                          alignSelf: 'flex-end',
+                          borderRadius: wp(7.5),
+                          width: wp(7.5),
+                          height: wp(7.5),
+                          marginRight: wp(7.5),
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}>
+                        <Icon icon="refresh.png" />
+                      </View>
+                    </TouchableWithoutFeedback>
 
                     {this.wallet_balance(
                       this.wallet.naira,
@@ -176,7 +193,7 @@ class Wallet extends React.Component {
                             paddingHorizontal: wp(2.8),
                           }}>
                           <Icon
-                            icon="send_white_icon.png"
+                            icon={require('../../android/app/src/main/assets/Icons/send_white_icon.png')}
                             style={{height: wp(10), width: wp(10)}}
                           />
                           <Fr_text color="#fff">Top-up</Fr_text>
@@ -190,7 +207,7 @@ class Wallet extends React.Component {
                             paddingHorizontal: wp(2.8),
                           }}>
                           <Icon
-                            icon="receive_white_icon.png"
+                            icon={require('../../android/app/src/main/assets/Icons/receive_white_icon.png')}
                             style={{height: wp(10), width: wp(10)}}
                           />
                           <Fr_text color="#fff">Withdraw</Fr_text>
@@ -205,7 +222,7 @@ class Wallet extends React.Component {
                               paddingHorizontal: wp(2.8),
                             }}>
                             <Icon
-                              icon="paycheck.png"
+                              icon={require('../../android/app/src/main/assets/Icons/receive_white_icon.png')}
                               style={{height: wp(10), width: wp(10)}}
                             />
                             <Fr_text color="#fff">Paycheck</Fr_text>
@@ -243,7 +260,7 @@ class Wallet extends React.Component {
                         </View>
                       </TouchableWithoutFeedback>
                       <Icon
-                        icon="currency_convert_icon.png"
+                        icon={require('../../android/app/src/main/assets/Icons/currency_convert_icon.png')}
                         style={{height: wp(13), width: wp(13)}}
                       />
                       <TouchableWithoutFeedback
@@ -301,6 +318,8 @@ class Wallet extends React.Component {
               <Cool_modal ref={topup_modal => (this.topup_modal = topup_modal)}>
                 <Topup
                   default_value={value}
+                  user={user}
+                  navigation={navigation}
                   decorator={this.topup_modal?.toggle_show_modal}
                 />
               </Cool_modal>
@@ -309,6 +328,8 @@ class Wallet extends React.Component {
                 ref={withdraw_modal => (this.withdraw_modal = withdraw_modal)}>
                 <Withdraw
                   wallet={this.wallet}
+                  user={user}
+                  navigation={navigation}
                   decorator={this.withdraw_modal?.toggle_show_modal}
                 />
               </Cool_modal>

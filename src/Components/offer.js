@@ -5,7 +5,7 @@ import Bg_view from './Bg_view';
 import Fr_text from './Fr_text';
 import Icon from './Icon';
 import Small_btn from './small_button';
-import {emitter} from './../../Udara';
+import {emitter, Sock_offer_status} from './../../Udara';
 import {post_request} from '../utils/services';
 import Text_btn from './Text_btn';
 import Cool_modal from './cool_modal';
@@ -73,7 +73,15 @@ class Offer extends React.Component {
     this.offer_status_update = ({offer: offer_id, status}) =>
       offer._id === offer_id && this.setState({status});
 
+    this.offer_accepted = offer_id =>
+      offer_id === offer._id && this.setState({status: 'accepted'});
+
+    this.offer_declined = offer_id =>
+      offer_id === offer._id && this.setState({status: 'declined'});
+
     emitter.listen('show_offer_btn', this.show_offer_btn);
+    emitter.listen('offer_accepted', this.offer_accepted);
+    emitter.listen('offer_declined', this.offer_declined);
     emitter.listen('offer_deposit', this.offer_deposit);
     emitter.listen('offer_status_update', this.offer_status_update);
     emitter.listen('resolve_dispute', this.resolve_dispute);
@@ -86,6 +94,8 @@ class Offer extends React.Component {
   };
 
   componentWillUnmount = () => {
+    emitter.remove_listener('offer_accepted', this.offer_accepted);
+    emitter.remove_listener('offer_declined', this.offer_declined);
     emitter.remove_listener('clear_new_messages', this.clear_new_messages);
     emitter.remove_listener('new_message', this.new_message);
     emitter.remove_listener('offer_confirmed', this.offer_confirmed);
@@ -138,6 +148,8 @@ class Offer extends React.Component {
       offer: offer._id,
       onsale: onsale._id,
     });
+    emitter.emit('offer_accepted', offer._id);
+    Sock_offer_status(offer._id, 'accepted', offer.user?._id);
     res && this.setState({status: 'accepted'});
   };
 
@@ -148,6 +160,8 @@ class Offer extends React.Component {
       offer: offer._id,
       onsale: onsale._id,
     });
+    emitter.emit('offer_declined', offer._id);
+    Sock_offer_status(offer._id, 'declined', offer.user?._id);
     res && this.setState({status: 'declined'});
   };
 
@@ -181,7 +195,7 @@ class Offer extends React.Component {
     navigation.navigate('dispute', {offer, onsale, user, admin_in_dispute});
   };
 
-  aday = 60 * /* 60 * 24 *  */ 1000;
+  aday = 60 * 60 * 24 * 1000;
 
   render = () => {
     let {
@@ -233,7 +247,7 @@ class Offer extends React.Component {
                 <Fr_text size={wp(3.5)}>{`x ${offer_rate}`}</Fr_text>
               </Bg_view>
               <Icon
-                icon="exchange_chat_icon.png"
+                icon={require('../../android/app/src/main/assets/Icons/exchange_chat_icon.png')}
                 style={{marginHorizontal: wp(2.8)}}
               />
               <Bg_view style={{alignItems: 'flex-end', flexWrap: 'wrap'}}>
@@ -260,7 +274,7 @@ class Offer extends React.Component {
                   <Bg_view horizontal style={{justifyContent: 'center'}}>
                     {status === 'declined' || status__ ? null : (
                       <Icon
-                        icon="chat_send_icon.png"
+                        icon={require('../../android/app/src/main/assets/Icons/chat_send_icon.png')}
                         action={this.go_to_chat}
                         text={<Fr_text>{` ${new_messages}`}</Fr_text>}
                         style={{height: wp(7.5), width: wp(7.5)}}
@@ -341,7 +355,7 @@ class Offer extends React.Component {
                   /* loggeduser is seller */ <Bg_view horizontal>
                     {status === 'declined' ? null : !status__ ? (
                       <Icon
-                        icon="chat_send_icon.png"
+                        icon={require('../../android/app/src/main/assets/Icons/chat_send_icon.png')}
                         action={this.go_to_chat}
                         text={
                           <Fr_text italic bold style={{marginLeft: wp(1.4)}}>

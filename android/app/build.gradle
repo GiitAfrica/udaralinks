@@ -228,10 +228,16 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+        release {
+            storeFile file('udara.keystore')
+            storePassword 'udaraapp'
+            keyAlias 'udara_alias'
+            keyPassword 'udaraapp'
+        }
     }
     buildTypes {
         debug {
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
         }
         release {
             // Caution! In production, you need to generate your own keystore file.

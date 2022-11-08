@@ -39,12 +39,10 @@ class Transactions extends React.Component {
 
     let {user, active_currency} = this.props;
     let {transactions: transactions_} = this.state;
-    if (this.state[`has_no_more_${active_currency}`]) return;
+    if (this.state[`has_no_more_${active_currency}`] && !mount) return;
     !mount && this.setState({refreshing: true});
 
-    let transactions = mount
-      ? new Array()
-      : transactions_[active_currency] || new Array();
+    let transactions = transactions_[active_currency] || new Array();
     let txs = await post_request('transactions', {
       wallet: user.wallet._id,
       currency: 'naira',
@@ -67,7 +65,7 @@ class Transactions extends React.Component {
       [`has_no_more_${active_currency}`]: !txs.length,
       refreshing: false,
       empty_msg: '',
-      mounts: {...this.state.mounts, [active_currency]: false},
+      mounts: {...this.state.mounts, [active_currency]: mount},
     });
   };
 
@@ -102,10 +100,10 @@ class Transactions extends React.Component {
 
   clear_search = () => this.setState({search_value: ''});
 
-  refresh = async () => await this.fetch_transactions();
+  refresh = async () => await this.fetch_transactions(true);
 
   render() {
-    let {user, active_currency, refresh} = this.props;
+    let {user, active_currency} = this.props;
 
     let {conversion_rates} = user.wallet;
     let {
@@ -135,7 +133,10 @@ class Transactions extends React.Component {
             transaction history
           </Fr_text>
           <Bg_view horizontal style={{alignItems: 'center'}}>
-            <Icon icon="attachement_icon.png" action={refresh} />
+            <Icon
+              icon="refresh.png"
+              action={() => this.fetch_transactions(true)}
+            />
             {transactions && transactions.length ? (
               <Icon
                 icon={
@@ -188,7 +189,7 @@ class Transactions extends React.Component {
               bold
               capitalise
               italic
-              size={wp(5)}
+              size={wp(4)}
               style={{alignItems: 'center', paddingVertical: hp(1.4)}}
             />
           )}

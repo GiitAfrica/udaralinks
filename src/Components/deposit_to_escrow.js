@@ -1,5 +1,5 @@
 import React from 'react';
-import {emitter} from '../../Udara';
+import {emitter, Sock_offer_status} from '../../Udara';
 import {hp, wp} from '../utils/dimensions';
 import {post_request} from '../utils/services';
 import toast from '../utils/toast';
@@ -27,9 +27,11 @@ class Deposit_to_escrow extends React.Component {
     let res = await post_request('deposit_to_escrow', {
       offer: offer._id,
       onsale: onsale._id,
-      seller: onsale.seller._id,
+      seller: onsale.seller?._id,
       buyer_wallet: offer.user.wallet,
     });
+
+    Sock_offer_status(offer._id, 'in-escrow', onsale.seller?._id);
 
     if (res) {
       emitter.emit('deduct_wallet', {value: amount * offer_rate});

@@ -33,9 +33,14 @@ class Currencies extends React.Component {
 
     return (
       <Bg_view
-        style={{paddingVertical: hp(2.8), elevation: 10, shadowColor: '#000'}}>
+        style={{
+          paddingVertical: hp(2.8),
+          elevation: 10,
+          shadowColor: '#000',
+          maxHeight: hp(),
+        }}>
         <Icon
-          icon="close_icon.png"
+          icon={require('../assets/Icons/close_icon.png')}
           action={() => close_modal && close_modal()}
           style={{
             alignSelf: 'flex-end',

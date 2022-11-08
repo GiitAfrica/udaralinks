@@ -1,6 +1,6 @@
 import React from 'react';
 import {KeyboardAvoidingView, ScrollView, TextInput} from 'react-native';
-import {emitter} from '../../Udara';
+import {emitter, Sock_offer_status} from '../../Udara';
 import Bg_view from '../Components/Bg_view';
 import Fr_text from '../Components/Fr_text';
 import Header from '../Components/header';
@@ -41,6 +41,7 @@ class Submit_dispute extends React.Component {
     };
 
     let res = await post_request('offer_in_dispute', dispute);
+    Sock_offer_status(offer._id, 'in-dispute', onsale.seller?._id);
 
     if (res._id) {
       dispute._id = res._id;

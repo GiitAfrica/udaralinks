@@ -1,5 +1,5 @@
 import React from 'react';
-import {emitter} from '../../Udara';
+import {emitter, Sock_offer_status} from '../../Udara';
 import {hp, wp} from '../utils/dimensions';
 import {post_request} from '../utils/services';
 import toast from '../utils/toast';
@@ -25,6 +25,11 @@ class Resolve_dispute extends React.Component {
       offer: dispute.offer._id,
       onsale: dispute.offer.onsale,
     });
+    Sock_offer_status(
+      dispute.offer._id,
+      dispute.offer.prior_offer_status,
+      dispute.offer.seller,
+    );
     if (res) {
       emitter.emit('resolve_dispute', dispute.offer._id);
       navigation.goBack();

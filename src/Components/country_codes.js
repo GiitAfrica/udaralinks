@@ -64,7 +64,7 @@ class Country_codes extends React.Component {
                 ),
               )
             ) : (
-              <List_empty />
+              <List_empty text="Unable to fetch country codes" />
             )
           ) : (
             <Loadindicator />

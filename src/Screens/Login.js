@@ -86,16 +86,19 @@ class Login extends React.Component {
     let {route} = this.props;
     let {phone, country_code, user, new_user, password} = this.state;
 
-    if (!phone_regex.test(phone) || password.length < 6)
-      return this.setState({loading: false}, () => toast('Invalid inputs'));
+    // if (!phone_regex.test(phone) || password.length < 6)
+    //   return this.setState({loading: false}, () => toast('Invalid inputs'));
 
     user = user || route?.params?.user;
     new_user = new_user || route?.params?.new_user;
     phone = set_phone_et_country_code(phone, country_code.code);
 
-    console.log(phone);
-
-    new_user && (await post_request('update_password', {key: password, user}));
+    new_user &&
+      (await post_request('update_password', {
+        key: password,
+        new_user: true,
+        user,
+      }));
 
     let result = await post_request('logging_in', {phone, key: password});
     await AsyncStorage.removeItem('new_user');
@@ -111,97 +114,103 @@ class Login extends React.Component {
     let {phone, password, reveal_password, loading, country_code} = this.state;
 
     return (
-      <KeyboardAvoidingView style={{flex: 1}}>
-        <ScrollView showVerticalScrollIndicator={false}>
-          <Bg_view style={{alignItems: 'center'}} flex no_bg>
-            <Fr_text
-              bold="900"
-              size={wp(10)}
-              accent
-              style={{marginTop: hp(10)}}>
-              Udara
-            </Fr_text>
-            <Bg_view
-              style={{
-                elevation: 10,
-                shadowColor: '#000',
-                width: wp(88.8),
-                height: hp(70),
-                justifyContent: 'center',
-                borderRadius: wp(5.6),
-                padding: wp(5.6),
-                paddingBottom: wp(2.8),
-                marginVertical: hp(5),
-              }}>
+      <Bg_view flex>
+        <KeyboardAvoidingView style={{flex: 1}}>
+          <ScrollView showVerticalScrollIndicator={false} style={{flex: 1}}>
+            <Bg_view style={{alignItems: 'center'}} flex no_bg>
               <Fr_text
                 bold="900"
-                size={wp(7.5)}
-                color="#28100B"
-                centralise
-                style={{marginBottom: hp(4)}}>
-                Login
+                size={wp(10)}
+                accent
+                style={{marginTop: hp(10)}}>
+                Udara
               </Fr_text>
-              <Text_input
-                value={phone}
-                placeholder="type your phone"
-                label="phone number"
-                type="phone-pad"
-                on_change_text={this.set_phone}
-                disabled={!!new_user}
-                left_icon={
-                  <TouchableWithoutFeedback onPress={this.toggle_country_codes}>
-                    <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                      <Icon
-                        icon={country_code.flag}
-                        style={{height: wp(10), width: wp(10)}}
-                      />
+              <Bg_view
+                style={{
+                  elevation: 10,
+                  shadowColor: '#000',
+                  width: wp(88.8),
+                  height: hp(70),
+                  justifyContent: 'center',
+                  borderRadius: wp(5.6),
+                  padding: wp(5.6),
+                  paddingBottom: wp(2.8),
+                  marginVertical: hp(5),
+                }}>
+                <Fr_text
+                  bold="900"
+                  size={wp(7.5)}
+                  color="#28100B"
+                  centralise
+                  style={{marginBottom: hp(4)}}>
+                  Login
+                </Fr_text>
+                <Text_input
+                  value={phone}
+                  placeholder="type your phone"
+                  label="phone number"
+                  type="phone-pad"
+                  on_change_text={this.set_phone}
+                  disabled={!!new_user}
+                  left_icon={
+                    <TouchableWithoutFeedback
+                      onPress={this.toggle_country_codes}>
+                      <View
+                        style={{flexDirection: 'row', alignItems: 'center'}}>
+                        <Icon
+                          icon={country_code.flag}
+                          style={{height: wp(10), width: wp(10)}}
+                        />
 
-                      <Fr_text
-                        size={wp(4.5)}
-                        bold
-                        color="#28100B"
-                        style={{marginLeft: wp(1.4)}}>
-                        {country_code.code}
-                      </Fr_text>
-                    </View>
-                  </TouchableWithoutFeedback>
-                }
-              />
+                        <Fr_text
+                          size={wp(4.5)}
+                          bold
+                          color="#28100B"
+                          style={{marginLeft: wp(1.4)}}>
+                          {country_code.code}
+                        </Fr_text>
+                      </View>
+                    </TouchableWithoutFeedback>
+                  }
+                />
 
-              <Text_input
-                value={password}
-                label={new_user ? 'create your password' : 'password'}
-                secure={!reveal_password}
-                placeholder="type your password"
-                on_change_text={this.set_password}
-                right_icon={
-                  <Icon
-                    icon={
-                      reveal_password ? 'account_icon.png' : 'home_icon.png'
-                    }
-                    action={this.toggle_reveal_password}
-                  />
-                }
-              />
-              <Stretched_button
-                title="login"
-                loading={loading}
-                style={{marginHorizontal: 0, marginTop: hp(2)}}
-                action={this.login}
-              />
+                <Text_input
+                  value={password}
+                  label={new_user ? 'create your password' : 'password'}
+                  secure={!reveal_password}
+                  placeholder="type your password"
+                  on_change_text={this.set_password}
+                  right_icon={
+                    <Icon
+                      icon={
+                        reveal_password
+                          ? require('./../assets/Icons/eye.png')
+                          : require('./../assets/Icons/hidden.png')
+                      }
+                      action={this.toggle_reveal_password}
+                    />
+                  }
+                />
+                <Stretched_button
+                  title="login"
+                  loading={loading}
+                  style={{marginHorizontal: 0, marginTop: hp(2)}}
+                  action={this.login}
+                />
+              </Bg_view>
+
+              <Cool_modal ref={cool_modal => (this.cool_modal = cool_modal)}>
+                <Country_codes
+                  close_modal={() =>
+                    this.cool_modal && this.cool_modal.toggle_show_modal()
+                  }
+                  select={this.set_country_code}
+                />
+              </Cool_modal>
             </Bg_view>
-
-            <Cool_modal ref={cool_modal => (this.cool_modal = cool_modal)}>
-              <Country_codes
-                close_modal={() =>
-                  this.cool_modal && this.cool_modal.toggle_show_modal()
-                }
-                select={this.set_country_code}
-              />
-            </Cool_modal>
-          </Bg_view>
-        </ScrollView>
-      </KeyboardAvoidingView>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </Bg_view>
     );
   };
 }

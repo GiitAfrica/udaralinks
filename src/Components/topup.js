@@ -1,14 +1,11 @@
 import React from 'react';
-import {TextInput, View, TouchableNativeFeedback} from 'react-native';
-import {emitter} from '../../Udara';
+import {TextInput, View} from 'react-native';
 import {hp, wp} from '../utils/dimensions';
 import Bg_view from './Bg_view';
 import Cool_modal from './cool_modal';
 import Currencies from './currencies';
 import Fr_text from './Fr_text';
 import Stretched_button from './Stretched_button';
-import PayWithFlutterwave from 'flutterwave-react-native';
-import {generate_random_string} from '../utils/functions';
 import Icon from './Icon';
 
 class Topup extends React.Component {
@@ -36,20 +33,19 @@ class Topup extends React.Component {
 
   topup = () => {
     this.setState({loading: true});
-    let {decorator} = this.props;
-    let {value, currency} = this.state;
+    let {decorator, navigation, user} = this.props;
+    let {value} = this.state;
     if (!Number(value)) {
-      toast('Invalid transactio value');
+      toast('Invalid transaction value');
       return this.setState({loading: false});
     }
 
-    emitter.emit('topup', {value: Number(value), currency});
-
+    navigation.push('generate_account_number', {value, user});
     decorator && decorator();
   };
 
   render = () => {
-    let {value, valid, curr_full, loading} = this.state;
+    let {value, valid, loading} = this.state;
 
     return (
       <Bg_view
@@ -95,30 +91,18 @@ class Topup extends React.Component {
                 borderLeftColor: '#ccc',
                 borderLeftWidth: 1,
               }}>
-              <Icon icon={'nigeria_flag_rectangle.png'} />
+              <Icon
+                icon={require('../assets/Icons/nigeria_flag_rectangle.png')}
+              />
               <Fr_text style={{marginLeft: wp(1.4)}}>{'NGN'}</Fr_text>
             </Bg_view>
           </View>
         </Bg_view>
 
-        <PayWithFlutterwave
-          onRedirect={this.handle_redirect}
-          options={{
-            tx_ref: `flw_tx_ref_${generate_random_string(9)}`,
-            authorization: 'FLWPUBK_TEST-d5b5c453140aa56d61eac41cb020c464-X',
-            customer: {
-              email: 'customer@mail.com',
-            },
-            amount: 12000,
-            currency: 'NGN',
-            payment_options: 'card',
-          }}
-        />
-
         <Stretched_button
           disabled={!valid}
           loading={loading}
-          title="continue"
+          title="Generate Account Number"
           action={this.topup}
         />
 

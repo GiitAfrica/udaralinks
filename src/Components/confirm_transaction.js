@@ -1,7 +1,6 @@
 import React from 'react';
-import {emitter} from '../../Udara';
+import {emitter, Sock_offer_status} from '../../Udara';
 import {hp, wp} from '../utils/dimensions';
-import {capitalise} from '../utils/functions';
 import {post_request} from '../utils/services';
 import Bg_view from './Bg_view';
 import Fr_text from './Fr_text';
@@ -30,6 +29,7 @@ class Confirm_transaction extends React.Component {
     res
       ? emitter.emit('offer_confirmed', offer._id)
       : toast('Err, something went wrong.');
+    Sock_offer_status(offer._id, 'completed', onsale.seller?._id);
 
     close_modal();
   };
@@ -37,7 +37,8 @@ class Confirm_transaction extends React.Component {
   decline = () => this.props.close_modal();
 
   render = () => {
-    let {close_modal, user, onsale, navigation, offer} = this.props;
+    let {close_modal, from_dispute, user, onsale, navigation, offer} =
+      this.props;
 
     return (
       <Bg_view>
@@ -52,7 +53,7 @@ class Confirm_transaction extends React.Component {
           }}>
           <Bg_view horizontal style={{justifyContent: 'space-between'}}>
             <Fr_text bold size={wp(5)} style={{margin: wp(2.8)}}>
-              Confirm
+              {from_dispute ? 'Admin Confirm' : 'Confirm'}
             </Fr_text>
             <Icon icon="close_icon.png" action={close_modal} />
           </Bg_view>

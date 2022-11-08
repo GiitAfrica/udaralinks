@@ -16,37 +16,7 @@ class Proceed_to_purchase extends React.Component {
     this.state = {};
   }
 
-  componentDidMount = async () => {
-    let {onsale, wallet, decorator} = this.props;
-    let {to_currency, from_currency, value} = onsale;
-    let {currencies} = wallet;
-
-    try {
-      let ftch = await fetch(
-        `https://api.flutterwave.com/v3/transfers/rates?amount=${value}&destination_currency=${
-          currencies.find(curr => curr.name === from_currency).alphabetic_name
-        }&source_currency=${
-          currencies.find(curr => curr.name === to_currency).alphabetic_name
-        }`,
-        {
-          method: 'GET',
-          headers: {
-            Authorization: `Bearer ${fsk}`,
-          },
-        },
-      );
-
-      let response = await ftch.json();
-      if (response && response.status === 'success')
-        this.setState({purchase_value: response?.data?.source?.amount});
-      else {
-        toast('Cannot fetch conversion rate at this time.');
-        decorator && decorator();
-      }
-    } catch (e) {
-      console.log(e.message);
-    }
-  };
+  componentDidMount = async () => {};
 
   purchase = async () => {
     this.setState({loading: true});
@@ -90,7 +60,10 @@ class Proceed_to_purchase extends React.Component {
           backgroundColor: '#eee',
         }}>
         <Bg_view no_bg style={{alignItems: 'flex-end'}}>
-          <Icon icon="close_icon.png" action={decorator} />
+          <Icon
+            icon={require('../assets/Icons/close_icon.png')}
+            action={decorator}
+          />
         </Bg_view>
         <Fr_text
           bold="900"

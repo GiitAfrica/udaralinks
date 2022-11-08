@@ -1,12 +1,6 @@
 import React from 'react';
-import {
-  FlatList,
-  KeyboardAvoidingView,
-  ScrollView,
-  TextInput,
-  View,
-} from 'react-native';
-import {emitter, User} from '../../Udara';
+import {FlatList, KeyboardAvoidingView, TextInput} from 'react-native';
+import {emitter, Sock_offer_status, User} from '../../Udara';
 import Bg_view from '../Components/Bg_view';
 import Fr_text from '../Components/Fr_text';
 import Header from '../Components/header';
@@ -140,6 +134,14 @@ class Chat extends React.Component {
     this.offer_status_update = ({offer: offer_id, status}) =>
       offer._id === offer_id && this.setState({status});
 
+    this.offer_accepted = offer_id =>
+      offer_id === offer._id && this.setState({status: 'accepted'});
+
+    this.offer_declined = offer_id =>
+      offer_id === offer._id && this.setState({status: 'declined'});
+
+    emitter.listen('offer_accepted', this.offer_accepted);
+    emitter.listen('offer_declined', this.offer_declined);
     emitter.listen('new_message', this.new_message);
     emitter.listen('offer_time_extended', this.offer_time_extended);
     emitter.listen('offer_deposit', this.offer_deposit);
@@ -152,6 +154,8 @@ class Chat extends React.Component {
   };
 
   componentWillUnmount = () => {
+    emitter.remove_listener('offer_accepted', this.offer_accepted);
+    emitter.remove_listener('offer_declined', this.offer_declined);
     emitter.remove_listener('offer_confirmed', this.offer_confirmed);
     emitter.remove_listener('offer_fulfilled', this.offer_fulfilled);
     emitter.remove_listener('offer_in_dispute', this.offer_in_dispute);
@@ -246,7 +250,7 @@ class Chat extends React.Component {
       attachment,
     };
 
-    emitter.emit('send_message', message, msg => {
+    emitter.emit('send_message', {message, chat}, msg => {
       let {messages} = this.state;
       messages = new Array(...messages, msg);
       this.setState(
@@ -306,7 +310,21 @@ class Chat extends React.Component {
       offer: offer._id,
       onsale: onsale._id,
     });
+    emitter.emit('offer_accepted', offer._id);
+    Sock_offer_status(offer._id, 'accepted', offer.user?._id);
     res && this.setState({status: 'accepted'});
+  };
+
+  decline = async () => {
+    let {offer, onsale} = this.props.route.params;
+
+    let res = await post_request('decline_offer', {
+      offer: offer._id,
+      onsale: onsale._id,
+    });
+    emitter.emit('offer_declined', offer._id);
+    Sock_offer_status(offer._id, 'declined', offer.user?._id);
+    res && this.setState({status: 'declined'});
   };
 
   on_blur = () => {
@@ -361,6 +379,7 @@ class Chat extends React.Component {
           borderRadius: wp(4),
           margin: wp(2.8),
           padding: wp(4),
+          paddingVertical: wp(2),
         }}>
         <Bg_view horizontal style={{justifyContent: 'space-between'}}>
           <Bg_view horizontal>
@@ -394,14 +413,14 @@ class Chat extends React.Component {
           horizontal
           style={{
             justifyContent: 'space-between',
-            marginVertical: hp(1.4),
+            marginVertical: hp(0.7),
           }}>
           <Fr_text
             style={{flex: 1}}
             size={wp(5.2)}
             bold>{`${amount} ${alphabetic_name}`}</Fr_text>
           <Icon
-            icon="exchange_chat_icon.png"
+            icon={require('../../android/app/src/main/assets/Icons/exchange_chat_icon.png')}
             style={{
               marginHorizontal: wp(2.8),
               height: wp(7.5),
@@ -623,149 +642,151 @@ class Chat extends React.Component {
           this.loggeduser = loggeduser;
 
           return (
-            <KeyboardAvoidingView style={{flex: 1}}>
-              <Bg_view flex>
-                <Header
-                  no_transform
-                  title={`Purchase ${amount} ${
-                    alphabetic_name || 'USD'
-                  } from ${capitalise(seller.username)}`}
-                  navigation={navigation}
-                />
-                <Bg_view flex style={{paddingHorizontal: wp(2.8)}}>
-                  {loading_more ? <Loadindicator /> : null}
-                  <FlatList
-                    data={
-                      messages
-                        ? new Array({_id: 'offer'}, ...messages).reverse()
-                        : new Array({_id: 'offer'})
-                    }
-                    keyExtractor={item => item._d}
-                    fadingEdgeLength={wp(10)}
-                    ref={flat_list => (this.flat_list = flat_list)}
-                    showsVerticalScrollIndicator={false}
-                    onEndReached={this.fetch_more}
-                    onEndReachedThreshold={0.3}
-                    inverted={messages && messages.length}
-                    renderItem={({item}) =>
-                      !item
-                        ? null
-                        : item._id === 'offer'
-                        ? this.render_chat_offer()
-                        : this.render_message(item)
-                    }
+            <Bg_view flex>
+              <KeyboardAvoidingView style={{flex: 1}}>
+                <Bg_view flex>
+                  <Header
+                    no_transform
+                    title={`Purchase ${amount} ${alphabetic_name} from ${capitalise(
+                      seller.username,
+                    )}`}
+                    navigation={navigation}
                   />
-                  <Bg_view flex>
-                    {messages ? (
-                      messages.length ? null : (
-                        <List_empty text="No messages yet" />
-                      )
-                    ) : (
-                      <Loadindicator />
-                    )}
+                  <Bg_view flex style={{paddingHorizontal: wp(2.8)}}>
+                    {loading_more ? <Loadindicator /> : null}
+                    <FlatList
+                      data={
+                        messages
+                          ? new Array({_id: 'offer'}, ...messages).reverse()
+                          : new Array({_id: 'offer'})
+                      }
+                      keyExtractor={item => item._d}
+                      fadingEdgeLength={wp(10)}
+                      ref={flat_list => (this.flat_list = flat_list)}
+                      showsVerticalScrollIndicator={false}
+                      onEndReached={this.fetch_more}
+                      onEndReachedThreshold={0.3}
+                      inverted={messages && messages.length}
+                      renderItem={({item}) =>
+                        !item
+                          ? null
+                          : item._id === 'offer'
+                          ? this.render_chat_offer()
+                          : this.render_message(item)
+                      }
+                    />
+                    <Bg_view flex>
+                      {messages ? (
+                        messages.length ? null : (
+                          <List_empty text="No messages yet" />
+                        )
+                      ) : (
+                        <Loadindicator />
+                      )}
+                    </Bg_view>
                   </Bg_view>
-                </Bg_view>
-                {is_typing ? (
-                  <Fr_text
-                    style={{marginHorizontal: wp(2.8), marginTop: hp(1.4)}}
-                    accent
-                    italic>
-                    {`${capitalise(
-                      this.other_person === seller._id
-                        ? seller.username
-                        : user.username,
-                    )} is typing`}
-                  </Fr_text>
-                ) : null}
-                <Bg_view
-                  horizontal
-                  style={{
-                    margin: wp(2.8),
-                    justifyContent: 'space-between',
-                    marginTop: wp(1),
-                  }}>
+                  {is_typing ? (
+                    <Fr_text
+                      style={{marginHorizontal: wp(2.8), marginTop: hp(1.4)}}
+                      accent
+                      italic>
+                      {`${capitalise(
+                        this.other_person === seller._id
+                          ? seller.username
+                          : user.username,
+                      )} is typing`}
+                    </Fr_text>
+                  ) : null}
                   <Bg_view
                     horizontal
                     style={{
-                      backgroundColor: '#ddd',
-                      borderRadius: wp(5.6),
-                      marginRight: wp(1.4),
-                      minHeight: hp(6),
-                      flex: 1,
+                      margin: wp(2.8),
+                      justifyContent: 'space-between',
+                      marginTop: wp(1),
                     }}>
-                    <TextInput
-                      placeholder="Enter message"
-                      multiline
-                      onBlur={this.on_blur}
-                      onFocus={this.on_focus}
-                      onChangeText={this.set_message_text}
-                      value={text}
+                    <Bg_view
+                      horizontal
                       style={{
-                        fontSize: wp(4),
-                        paddingHorizontal: wp(4),
+                        backgroundColor: '#ddd',
+                        borderRadius: wp(5.6),
+                        marginRight: wp(1.4),
+                        minHeight: hp(6),
                         flex: 1,
-                      }}
-                    />
-                    <Icon
-                      icon="attachement_icon.png"
-                      action={() => this.toggle_attachments()}
-                    />
+                      }}>
+                      <TextInput
+                        placeholder="Enter message"
+                        multiline
+                        onBlur={this.on_blur}
+                        onFocus={this.on_focus}
+                        onChangeText={this.set_message_text}
+                        value={text}
+                        style={{
+                          fontSize: wp(4),
+                          paddingHorizontal: wp(4),
+                          flex: 1,
+                        }}
+                      />
+                      <Icon
+                        icon={require('../../android/app/src/main/assets/Icons/attachement_icon.png')}
+                        action={() => this.toggle_attachments()}
+                      />
+                    </Bg_view>
+                    {sending ? (
+                      <Loadindicator />
+                    ) : !text && !attachment.length ? null : (
+                      <Icon
+                        icon={require('../../android/app/src/main/assets/Icons/chat_send_icon.png')}
+                        action={this.send_message}
+                        style={{height: wp(9), width: wp(9)}}
+                      />
+                    )}
                   </Bg_view>
-                  {sending ? (
-                    <Loadindicator />
-                  ) : !text && !attachment.length ? null : (
-                    <Icon
-                      icon="chat_send_icon.png"
-                      action={this.send_message}
-                      style={{height: wp(9), width: wp(9)}}
-                    />
-                  )}
                 </Bg_view>
-              </Bg_view>
 
-              <Cool_modal
-                ref={cool_modal_deposit =>
-                  (this.cool_modal_deposit = cool_modal_deposit)
-                }>
-                <Deposit_to_escrow
-                  onsale={onsale}
-                  offer={offer}
-                  navigation={navigation}
-                  wallet={loggeduser.wallet}
-                  close_modal={
-                    this.cool_modal_deposit &&
-                    this.cool_modal_deposit.toggle_show_modal
-                  }
-                />
-              </Cool_modal>
+                <Cool_modal
+                  ref={cool_modal_deposit =>
+                    (this.cool_modal_deposit = cool_modal_deposit)
+                  }>
+                  <Deposit_to_escrow
+                    onsale={onsale}
+                    offer={offer}
+                    navigation={navigation}
+                    wallet={loggeduser.wallet}
+                    close_modal={
+                      this.cool_modal_deposit &&
+                      this.cool_modal_deposit.toggle_show_modal
+                    }
+                  />
+                </Cool_modal>
 
-              <Cool_modal
-                ref={fulfil_modal => (this.fulfil_modal = fulfil_modal)}>
-                <Fulfil
-                  offer={offer}
-                  onsale={onsale}
-                  navigation={navigation}
-                  close_modal={
-                    this.fulfil_modal && this.fulfil_modal.toggle_show_modal
-                  }
-                />
-              </Cool_modal>
-              <Cool_modal
-                ref={cool_modal_confirm =>
-                  (this.cool_modal_confirm = cool_modal_confirm)
-                }>
-                <Confirm_transaction
-                  offer={offer}
-                  onsale={onsale}
-                  navigation={navigation}
-                  user={loggeduser}
-                  close_modal={
-                    this.cool_modal_confirm &&
-                    this.cool_modal_confirm.toggle_show_modal
-                  }
-                />
-              </Cool_modal>
-            </KeyboardAvoidingView>
+                <Cool_modal
+                  ref={fulfil_modal => (this.fulfil_modal = fulfil_modal)}>
+                  <Fulfil
+                    offer={offer}
+                    onsale={onsale}
+                    navigation={navigation}
+                    close_modal={
+                      this.fulfil_modal && this.fulfil_modal.toggle_show_modal
+                    }
+                  />
+                </Cool_modal>
+                <Cool_modal
+                  ref={cool_modal_confirm =>
+                    (this.cool_modal_confirm = cool_modal_confirm)
+                  }>
+                  <Confirm_transaction
+                    offer={offer}
+                    onsale={onsale}
+                    navigation={navigation}
+                    user={loggeduser}
+                    close_modal={
+                      this.cool_modal_confirm &&
+                      this.cool_modal_confirm.toggle_show_modal
+                    }
+                  />
+                </Cool_modal>
+              </KeyboardAvoidingView>
+            </Bg_view>
           );
         }}
       </User.Consumer>

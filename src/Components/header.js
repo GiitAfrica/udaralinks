@@ -9,7 +9,7 @@ const Header = ({title, no_transform, navigation}) => (
     <Icon
       action={navigation?.goBack || (() => {})}
       style={{marginLeft: wp(1.4)}}
-      icon="back_icon.png"
+      icon={require('../../android/app/src/main/assets/Icons/back_icon.png')}
     />
     <Fr_text capitalise={!no_transform} bold size={wp(4.5)}>
       {`  ${title}`}

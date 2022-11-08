@@ -1,6 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React from 'react';
-import {TextInput, TouchableNativeFeedback, View} from 'react-native';
+import {
+  TextInput,
+  TouchableNativeFeedback,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
+import Purposes from './purposes';
 import {hp, wp} from '../utils/dimensions';
 import Bg_view from './Bg_view';
 import Cool_modal from './cool_modal';
@@ -14,7 +20,7 @@ class Buy extends React.Component {
     super(props);
 
     let {default_value} = this.props;
-    let {currency, value, rate} = default_value || {
+    let {currency, purpose, value, rate} = default_value || {
       currency: {
         name: 'dollar',
         icon: 'dollar_icon.png',
@@ -29,15 +35,16 @@ class Buy extends React.Component {
       rate,
       currency: currency.name,
       currency_full: currency,
+      purpose: purpose?._id,
+      purpose_full: purpose,
     };
   }
 
   componentDidMount = async () => {
     let {value} = this.state;
-    console.log(value);
     if (!value) {
       let buy_filter = await AsyncStorage.getItem('buy_filter');
-      console.log(buy_filter);
+
       if (buy_filter) {
         buy_filter = JSON.parse(buy_filter);
         this.setState({...buy_filter});
@@ -52,14 +59,17 @@ class Buy extends React.Component {
   set_currency = (currency, currency_full) =>
     this.setState({currency, currency_full});
 
+  set_purpose = (purpose, purpose_full) =>
+    this.setState({purpose, purpose_full});
+
   buy = async () => {
     this.setState({loading: true});
     let {navigation, close_modal, set_filter} = this.props;
-    let {value, rate, currency_full} = this.state;
+    let {value, purpose_full, currency_full} = this.state;
 
     let buy_filter = {
       value,
-      rate,
+      purpose_full,
       currency_full,
     };
     await AsyncStorage.setItem('buy_filter', JSON.stringify(buy_filter));
@@ -71,7 +81,7 @@ class Buy extends React.Component {
   };
 
   render() {
-    let {rate, value, currency_full} = this.state;
+    let {value, purpose_full, currency_full} = this.state;
 
     return (
       <Bg_view
@@ -119,50 +129,61 @@ class Buy extends React.Component {
         </Bg_view>
 
         <Fr_text bold size={wp(5)} style={{margin: wp(2.8)}}>
-          Rate
+          Purpose
         </Fr_text>
-        <Bg_view
-          horizontal
-          shadowed
-          style={{
-            alignItems: 'center',
-            borderRadius: wp(1.4),
-            margin: wp(2.8),
-          }}>
-          <TextInput
-            placeholder="Enter rate"
-            value={rate}
-            keyboardType="phone-pad"
-            onChangeText={this.set_rate}
-            style={{
-              flex: 1,
-              borderRadius: wp(1),
-              padding: wp(2.8),
-              fontSize: wp(5),
-            }}
-          />
-          <View>
-            <Bg_view
-              horizontal
+        <Bg_view horizontal shadowed>
+          <TouchableNativeFeedback
+            onPress={() => this.cool_modal_purposes?.toggle_show_modal()}>
+            <View
               style={{
-                borderRadius: wp(1),
-                height: hp(7.5),
-                padding: wp(2.8),
-                borderLeftColor: '#ccc',
-                borderLeftWidth: 1,
+                flexDirection: 'row',
+                alignItems: 'center',
+                borderRadius: wp(1.4),
+                margin: wp(1.4),
               }}>
-              <Icon icon={'nigeria_flag_rectangle.png'} />
-              <Fr_text style={{marginLeft: wp(1.4)}}>{'NGN'}</Fr_text>
-            </Bg_view>
-          </View>
+              <View
+                style={{
+                  flex: 1,
+                  borderRadius: wp(1),
+                  padding: wp(1.4),
+                  fontSize: wp(5),
+                }}>
+                <Fr_text capitalise>
+                  {purpose_full ? purpose_full.title : 'Select Purpose'}
+                </Fr_text>
+              </View>
+              <View>
+                <Bg_view
+                  horizontal
+                  style={{
+                    borderRadius: wp(1),
+                    height: hp(7.5),
+                    padding: wp(1.4),
+                    borderLeftColor: '#ccc',
+                    borderLeftWidth: 1,
+                  }}>
+                  <Icon icon={purpose_full && purpose_full.icon} />
+                </Bg_view>
+              </View>
+            </View>
+          </TouchableNativeFeedback>
         </Bg_view>
 
         <Stretched_button
-          disabled={!value || Number(value) <= 0 || !rate || Number(rate) <= 0}
+          disabled={!value || Number(value) <= 0 || !purpose_full}
           title="continue"
           action={this.buy}
         />
 
+        <Cool_modal
+          ref={cool_modal_purposes =>
+            (this.cool_modal_purposes = cool_modal_purposes)
+          }>
+          <Purposes
+            select={this.set_purpose}
+            close_modal={this.cool_modal_purposes?.toggle_show_modal}
+          />
+        </Cool_modal>
         <Cool_modal ref={cool_modal => (this.cool_modal = cool_modal)}>
           <Currencies
             select={this.set_currency}

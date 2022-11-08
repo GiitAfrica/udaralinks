@@ -16,6 +16,10 @@ class Otp_counter extends React.Component {
     this.run_counter();
   };
 
+  componentWillUnmount = ()=>{
+    clearInterval(this.counting);
+  }
+
   run_counter = () => {
     this.counting = setInterval(() => {
       let {counter} = this.state;

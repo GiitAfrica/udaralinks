@@ -1,5 +1,5 @@
 import React from 'react';
-import {emitter} from '../../Udara';
+import {emitter, Sock_offer_status} from '../../Udara';
 import {hp, wp} from '../utils/dimensions';
 import {post_request} from '../utils/services';
 import toast from '../utils/toast';
@@ -26,6 +26,7 @@ class Fulfil extends React.Component {
       buyer: offer.user?._id,
       seller: onsale.seller?._id,
     });
+    Sock_offer_status(offer._id, 'awaiting confirmation', offer.user?._id);
     res
       ? emitter.emit('offer_fulfilled', {
           offer: offer._id,

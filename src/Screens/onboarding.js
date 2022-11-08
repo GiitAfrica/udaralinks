@@ -20,7 +20,7 @@ class Onboarding extends React.Component {
     BackHandler.addEventListener('hardwareBackPress', () => {
       let is_focused = navigation.isFocused();
       is_focused && BackHandler.exitApp();
- 
+
       return is_focused;
     });
   };
@@ -46,41 +46,45 @@ class Onboarding extends React.Component {
     return (
       <Bg_view flex>
         <StatusBar hidden />
-        <ScrollView
-          horizontal
-          onScroll={e => {
-            this.swipe_index(e.nativeEvent);
-          }}
-          showsHorizontalScrollIndicator={false}
-          pagingEnabled>
-          {onboardings &&
-            onboardings.map(onboard => (
-              <Onboard onboard={onboard} key={onboard._id} />
-            ))}
+        <ScrollView showsVerticalScrollIndicator={false}>
+          <ScrollView
+            horizontal
+            onScroll={e => {
+              this.swipe_index(e.nativeEvent);
+            }}
+            showsHorizontalScrollIndicator={false}
+            pagingEnabled>
+            {onboardings &&
+              onboardings.map(onboard => (
+                <Onboard onboard={onboard} key={onboard._id} />
+              ))}
+          </ScrollView>
+
+          <Bg_view
+            style={{
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginTop: hp(5),
+            }}
+            horizontal>
+            {onboardings ? (
+              <Swipe_indicator
+                ref={swipe_indicator =>
+                  (this.swipe_indicator = swipe_indicator)
+                }
+                count={onboardings.length}
+                current={current_index}
+              />
+            ) : null}
+          </Bg_view>
+
+          <Stretched_button
+            caps
+            style={{marginBottom: hp(10)}}
+            title="get started"
+            action={this.get_started}
+          />
         </ScrollView>
-
-        <Bg_view
-          style={{
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginTop: hp(5),
-          }}
-          horizontal>
-          {onboardings ? (
-            <Swipe_indicator
-              ref={swipe_indicator => (this.swipe_indicator = swipe_indicator)}
-              count={onboardings.length}
-              current={current_index}
-            />
-          ) : null}
-        </Bg_view>
-
-        <Stretched_button
-          caps
-          style={{marginBottom: hp(10)}}
-          title="get started"
-          action={this.get_started}
-        />
       </Bg_view>
     );
   };

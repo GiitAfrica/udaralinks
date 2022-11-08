@@ -12,9 +12,11 @@ import Currencies from '../Components/currencies';
 import Fr_text from '../Components/Fr_text';
 import Header from '../Components/header';
 import Icon from '../Components/Icon';
+import Loadindicator from '../Components/load_indicator';
 import Stretched_button from '../Components/Stretched_button';
+import Text_btn from '../Components/Text_btn';
 import {hp, wp} from '../utils/dimensions';
-import {post_request} from '../utils/services';
+import {get_request, post_request} from '../utils/services';
 import toast from '../utils/toast';
 
 class Sell extends React.Component {
@@ -34,13 +36,28 @@ class Sell extends React.Component {
         flag: 'usa_flag_rectangle.png',
       },
       minimum_sell_value: 0,
+      purposes: new Array(),
     };
   }
 
-  is_set = () => {
-    let {value, rate} = this.state;
+  componentDidMount = async () => {
+    let all_purposes = await get_request('purposes');
+    all_purposes && all_purposes.reverse(), this.setState({all_purposes});
+  };
 
-    return value <= 0 || rate <= 0 || !value || !rate;
+  is_set = () => {
+    let {value, rate, purposes} = this.state;
+
+    return value <= 0 || rate <= 0 || !value || !rate || !purposes.length;
+  };
+
+  handle_purpose = purpose => {
+    let {purposes} = this.state;
+    if (purposes.find(purpose_ => purpose_._id === purpose._id))
+      purposes = purposes.filter(purpose_ => purpose_._id !== purpose._id);
+    else purposes = new Array(...purposes, purpose);
+
+    this.setState({purposes});
   };
 
   set_value = value => this.setState({value});
@@ -71,13 +88,15 @@ class Sell extends React.Component {
       minimum_sell_value,
       currency_full,
       offer_terms,
+      purposes,
     } = this.state;
 
     let sale = {
       rate: Number(rate),
       value: Number(value),
-      currency,
+      currency: currency || 'dollar',
       offer_terms,
+      purposes: purposes.map(p => p._id),
       seller: wallet.user,
       wallet: wallet._id,
       alphabetic_name: currency_full.alphabetic_name,
@@ -99,8 +118,16 @@ class Sell extends React.Component {
 
   render() {
     let {navigation} = this.props;
-    let {value, currency_full, minimum_sell_value, offer_terms, rate, loading} =
-      this.state;
+    let {
+      value,
+      currency_full,
+      all_purposes,
+      purposes,
+      minimum_sell_value,
+      offer_terms,
+      rate,
+      loading,
+    } = this.state;
 
     return (
       <Bg_view flex style={{paddingHorizontal: wp(2.8)}}>
@@ -199,6 +226,7 @@ class Sell extends React.Component {
                 borderRadius: wp(1.4),
                 shadowColor: '#000',
                 elevation: 5,
+                marginBottom: hp(1.4),
               }}>
               <TextInput
                 placeholder="Set minimum sell value"
@@ -228,6 +256,22 @@ class Sell extends React.Component {
                   </Fr_text>
                 </Bg_view>
               </View>
+            </Bg_view>
+            <Fr_text accent>Purposes</Fr_text>
+
+            <Bg_view style={{flexWrap: 'wrap'}} horizontal>
+              {all_purposes ? (
+                all_purposes.map(purpose => (
+                  <Text_btn
+                    capitalise
+                    accent={purposes.find(p => p._id === purpose._id)}
+                    text={purpose.title}
+                    action={() => this.handle_purpose(purpose)}
+                  />
+                ))
+              ) : (
+                <Loadindicator />
+              )}
             </Bg_view>
           </Bg_view>
 

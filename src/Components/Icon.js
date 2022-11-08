@@ -5,6 +5,8 @@ import {domain} from '../utils/services';
 import Bg_view from './Bg_view';
 
 const Icon = ({icon, action, text, style}) => {
+  if (!icon) return null;
+
   if (typeof icon === 'string') icon = {uri: `${domain}/Icons/${icon}`};
 
   if (!style) style = new Object();
@@ -27,12 +29,18 @@ const Icon = ({icon, action, text, style}) => {
             width: undefined,
           }}>
           <Image
-            source={{
-              uri: icon?.uri,
-              height: style.height || wp(5.5),
-              width: style.width || wp(5.5),
-            }}
+            source={
+              icon && icon.uri
+                ? {
+                    uri: icon?.uri,
+                    height: style.height || wp(5.5),
+                    width: style.width || wp(5.5),
+                  }
+                : icon
+            }
             style={{
+              height: wp(5.5),
+              width: wp(5.5),
               ...style,
               paddingHorizontal: 0,
               marginHorizontal: 0,

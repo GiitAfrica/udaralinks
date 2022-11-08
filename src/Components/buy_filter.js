@@ -17,7 +17,7 @@ class Buy_filter extends React.Component {
     let {filter, set_buy_filter} = this.props;
     if (!filter) return null;
 
-    let {currency_full, value, rate} = filter;
+    let {currency_full, value, purpose_full} = filter;
 
     return (
       <View>
@@ -43,7 +43,15 @@ class Buy_filter extends React.Component {
                   <Fr_text bold size={wp(5)}>
                     {`${value} ${currency_full.alphabetic_name}`}
                   </Fr_text>
-                  <Fr_text size={wp(4)}>{`x ${rate}`}</Fr_text>
+                  <Bg_view horizontal>
+                    <Icon
+                      icon={purpose_full.icon}
+                      style={{height: wp(4.5), width: wp(4.5)}}
+                    />
+                    <Fr_text
+                      capitalise
+                      size={wp(4)}>{`${purpose_full.title}`}</Fr_text>
+                  </Bg_view>
                 </Bg_view>
               </Bg_view>
             </Bg_view>
@@ -52,7 +60,7 @@ class Buy_filter extends React.Component {
 
         <Cool_modal ref={buy_modal => (this.buy_modal = buy_modal)}>
           <Buy
-            default_value={{currency: currency_full, value, rate}}
+            default_value={{currency: currency_full, value, purpose_full}}
             close_modal={this.buy_modal?.toggle_show_modal}
             set_filter={set_buy_filter}
           />

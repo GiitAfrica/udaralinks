@@ -80,7 +80,7 @@ class Home extends React.Component {
                       padding: wp(2.8),
                     }}>
                     <Icon
-                      icon="acccount_orange_icon.png"
+                      icon={require('../../android/app/src/main/assets/Icons/acccount_orange_icon.png')}
                       action={() => navigation.navigate('account')}
                     />
                     <Fr_text capitalise size={wp(4.5)}>
@@ -88,7 +88,7 @@ class Home extends React.Component {
                     </Fr_text>
                     {new_txs.length ? (
                       <Icon
-                        icon="notification_icon.png"
+                        icon={require('../../android/app/src/main/assets/Icons/notification_icon.png')}
                         action={() => {
                           navigation.navigate('wallet'),
                             this.setState({new_txs: new Array()});
@@ -167,7 +167,7 @@ class Home extends React.Component {
                               height: hp(7),
                               width: wp(50),
                             }}
-                            icon="master_card_circles.png"
+                            icon={require('../../android/app/src/main/assets/Icons/master_card_circles.png')}
                           />
                         </Bg_view>
                       </Bg_view>

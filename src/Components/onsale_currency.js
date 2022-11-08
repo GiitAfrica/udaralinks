@@ -11,7 +11,6 @@ import Fr_text from './Fr_text';
 import Icon from './Icon';
 import Line from './line';
 import Proceed_to_purchase from './proceed_to_purchase';
-import Small_btn from './small_button';
 import Text_btn from './Text_btn';
 import Topup from './topup';
 
@@ -92,11 +91,14 @@ class Onsale_currency extends React.Component {
   like = async () => {
     let {user} = this.props;
     let {onsale} = this.state;
-    await post_request('like_sale', {
-      onsale: onsale._id,
-      currency,
-      user: user._id,
-    });
+    try {
+      await post_request('like_sale', {
+        onsale: onsale._id,
+        currency,
+        user: user._id,
+      });
+    } catch (e) {}
+
     onsale.likes++;
     this.setState({onsale});
   };
@@ -104,11 +106,14 @@ class Onsale_currency extends React.Component {
   dislike = async () => {
     let {user} = this.props;
     let {onsale} = this.state;
-    await post_request('dislike_sale', {
-      onsale: onsale._id,
-      currency,
-      user: user._id,
-    });
+    try {
+      await post_request('dislike_sale', {
+        onsale: onsale._id,
+        currency,
+        user: user._id,
+      });
+    } catch (e) {}
+
     onsale.dislikes++;
     this.setState({onsale});
   };
@@ -187,7 +192,7 @@ class Onsale_currency extends React.Component {
             <Bg_view horizontal style={{justifyContent: 'space-between'}}>
               <Bg_view horizontal style={{alignItems: 'center'}}>
                 <Icon
-                  icon="like_icon.png"
+                  icon={require('../assets/Icons/like_icon.png')}
                   action={user._id !== seller._id && this.like}
                   text={
                     likes ? (
@@ -207,7 +212,7 @@ class Onsale_currency extends React.Component {
                   }}
                 />
                 <Icon
-                  icon="dislike_icon.png"
+                  icon={require('../assets/Icons/dislike_icon.png')}
                   action={user._id !== seller._id && this.dislike}
                   text={
                     dislikes ? (
@@ -286,11 +291,6 @@ class Onsale_currency extends React.Component {
             remove={this.remove}
           />
         </Cool_modal>
-
-        <Cool_modal
-          ref={cool_modal_remove =>
-            (this.cool_modal_remove = cool_modal_remove)
-          }></Cool_modal>
       </Bg_view>
     );
   };

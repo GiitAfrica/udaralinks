@@ -99,98 +99,102 @@ class Verification extends React.Component {
     let last_four_digit = str_phone.slice(str_phone.length - 4);
 
     return (
-      <KeyboardAvoidingView style={{flex: 1}}>
-        <ScrollView showVerticalScrollIndicator={false}>
-          <Bg_view style={{alignItems: 'center'}}>
-            <Icon
-              icon="Verification_2.png"
-              style={{height: hp(35), width: wp(85)}}
-            />
-
-            <Fr_text bold="900" size={wp(7)} color="#28100B">
-              Verification
-            </Fr_text>
-            <Fr_text
-              size={wp(4.2)}
-              centralise
-              capitalise
-              line_height={wp(7)}
-              opacity={0.8}
-              style={{
-                marginHorizontal: wp(20),
-                marginTop: hp(1.4),
-                marginBottom: hp(2.8),
-              }}>
-              {`enter the 4 digit number that was sent to ****${last_four_digit}`}
-            </Fr_text>
-            <Bg_view
-              style={{
-                backgroundColor: '#fff',
-                width: wp(88.8),
-                height: hp(35),
-                justifyContent: 'center',
-                borderRadius: wp(5.6),
-                padding: wp(5.6),
-                elevation: 10,
-                shadowColor: '#000',
-              }}>
-              <Bg_view
-                style={{
-                  height: hp(7.5),
-                  borderWidth: 1,
-                  borderColor: '#ccc',
-                  borderRadius: wp(4),
-                  marginTop: hp(4),
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  paddingHorizontal: wp(4),
-                  paddingRight: wp(2.8),
-                }}>
-                <TextInput
-                  placeholder="_ _ _ _"
-                  keyboardType="phone-pad"
-                  onChangeText={this.set_code}
-                  value={String(code)}
-                  style={{
-                    flex: 1,
-                    fontSize: wp(4.5),
-                    color: '#28100B',
-                    marginRight: wp(1.4),
-                    fontWeight: 'bold',
-                    textAlign: 'center',
-                  }}
-                />
-                {valid_code ? (
-                  <Icon
-                    icon="id_verification_icon.png"
-                    style={{height: wp(7.5), width: wp(7.5)}}
-                  />
-                ) : null}
-              </Bg_view>
-              <Stretched_button
-                title="verify"
-                disabled={!valid_code || doing_later}
-                loading={loading}
-                style={{marginHorizontal: 0, marginTop: hp(4)}}
-                action={this.verify}
+      <Bg_view flex>
+        <KeyboardAvoidingView style={{flex: 1}}>
+          <ScrollView showVerticalScrollIndicator={false}>
+            <Bg_view style={{alignItems: 'center'}}>
+              <Icon
+                icon={require('./../assets/Icons/Verification_2.png')}
+                style={{height: hp(35), width: wp(85)}}
               />
 
-              <Bg_view style={{alignItems: 'center'}}>
-                {doing_later ? (
-                  <Loadindicator style={{minHeight: null}} />
-                ) : (
-                  <Text_btn
-                    disabled={loading}
-                    text="Do this later"
-                    action={this.verify_later}
+              <Fr_text bold="900" size={wp(7)} color="#28100B">
+                Verification
+              </Fr_text>
+              <Fr_text
+                size={wp(4.2)}
+                centralise
+                capitalise
+                line_height={wp(7)}
+                opacity={0.8}
+                style={{
+                  marginHorizontal: wp(20),
+                  marginTop: hp(1.4),
+                  marginBottom: hp(2.8),
+                }}>
+                {`enter the 4 digit number that was sent to ****${last_four_digit}`}
+              </Fr_text>
+              <Bg_view
+                style={{
+                  backgroundColor: '#fff',
+                  width: wp(88.8),
+                  height: hp(35),
+                  justifyContent: 'center',
+                  borderRadius: wp(5.6),
+                  padding: wp(5.6),
+                  elevation: 10,
+                  shadowColor: '#000',
+                }}>
+                <Bg_view
+                  style={{
+                    height: hp(7.5),
+                    borderWidth: 1,
+                    borderColor: '#ccc',
+                    borderRadius: wp(4),
+                    marginTop: hp(4),
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    paddingHorizontal: wp(4),
+                    paddingRight: wp(2.8),
+                  }}>
+                  <TextInput
+                    placeholder="_ _ _ _"
+                    keyboardType="phone-pad"
+                    onChangeText={this.set_code}
+                    value={String(code)}
+                    style={{
+                      flex: 1,
+                      fontSize: wp(4.5),
+                      color: '#28100B',
+                      marginRight: wp(1.4),
+                      fontWeight: 'bold',
+                      textAlign: 'center',
+                    }}
                   />
-                )}
+                  {valid_code ? (
+                    <Icon
+                      icon={require('../assets/Icons/valid.png')}
+                      style={{height: wp(7.5), width: wp(7.5)}}
+                    />
+                  ) : null}
+                </Bg_view>
+                <Stretched_button
+                  title="verify"
+                  disabled={!valid_code || doing_later}
+                  loading={loading}
+                  style={{marginHorizontal: 0, marginTop: hp(4)}}
+                  action={this.verify}
+                />
+
+                <Bg_view style={{alignItems: 'center'}}>
+                  {doing_later ? (
+                    <Loadindicator style={{minHeight: null}} />
+                  ) : (
+                    <Text_btn
+                      disabled={loading}
+                      text="Do this later"
+                      action={this.verify_later}
+                    />
+                  )}
+                </Bg_view>
               </Bg_view>
+              {doing_later ? null : (
+                <Otp_counter resend_otp={this.resend_otp} />
+              )}
             </Bg_view>
-            {doing_later ? null : <Otp_counter resend_otp={this.resend_otp} />}
-          </Bg_view>
-        </ScrollView>
-      </KeyboardAvoidingView>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </Bg_view>
     );
   };
 }

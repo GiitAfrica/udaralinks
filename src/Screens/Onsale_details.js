@@ -12,6 +12,7 @@ import {hp, wp} from '../utils/dimensions';
 import {capitalise} from '../utils/functions';
 import {post_request} from '../utils/services';
 import toast from '../utils/toast';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 class Onsale_details extends React.Component {
   constructor(props) {
@@ -26,7 +27,11 @@ class Onsale_details extends React.Component {
 
   componentDidMount = async () => {
     let {onsale, user} = this.props.route.params;
+    this._onsale = onsale;
     let {my_offers} = this.state;
+
+    let buy_filter = await AsyncStorage.getItem('buy_filter');
+    buy_filter && this.setState({buy_filter: JSON.parse(buy_filter)});
 
     my_offers =
       (await post_request('my_offers', {onsale: onsale._id, user: user._id})) ||
@@ -44,18 +49,22 @@ class Onsale_details extends React.Component {
     navigation.navigate('chat', {onsale, user});
   };
 
-  set_amount = amount => this.setState({amount});
+  set_amount = amount =>
+    this.setState({
+      amount: amount > this._onsale.value ? this._onsale.value : amount,
+    });
 
   set_rate = offer_rate => this.setState({offer_rate});
 
   send_offer = async () => {
     let {route} = this.props;
     let {onsale, user} = route.params;
-    let {amount, offer_rate} = this.state;
+    let {amount, buy_filter} = this.state;
 
     let offer = {
       amount: Number(amount),
-      offer_rate: Number(offer_rate),
+      offer_rate: Number(onsale.rate),
+      purpose: buy_filter.purpose_full._id,
       user: user._id,
       onsale: onsale._id,
       seller: onsale.seller._id,
@@ -65,16 +74,16 @@ class Onsale_details extends React.Component {
     if (res) {
       let {my_offers} = this.state;
       my_offers = new Array(res, ...my_offers);
-      this.setState({my_offers, amount: 0, offer_rate: 0});
+      this.setState({my_offers, amount: 0});
     } else toast("Couldn't place offer at this time.");
   };
 
   render() {
-    let {amount, offer_rate, my_offers} = this.state;
+    let {amount, my_offers, buy_filter} = this.state;
     let {route, navigation} = this.props;
     let {onsale, user} = route.params;
 
-    let {seller, alphabetic_name, value, offer_terms, rate, flag} = onsale;
+    let {seller, alphabetic_name, value, offer_terms, flag} = onsale;
 
     return (
       <Bg_view flex>
@@ -115,7 +124,7 @@ class Onsale_details extends React.Component {
               }}>
               <TextInput
                 placeholder="Enter amount"
-                value={amount}
+                value={String(amount)}
                 keyboardType="phone-pad"
                 onChangeText={this.set_amount}
                 style={{
@@ -145,7 +154,7 @@ class Onsale_details extends React.Component {
 
             <Bg_view horizontal style={{justifyContent: 'space-between'}}>
               <Fr_text style={{margin: wp(2.8), marginBottom: 0}} accent>
-                Negotiate Rate
+                State Purpose
               </Fr_text>
               <Fr_text
                 opacity={0.8}
@@ -155,44 +164,48 @@ class Onsale_details extends React.Component {
                 Udara fee - 0.5%
               </Fr_text>
             </Bg_view>
-            <Bg_view
-              horizontal
-              shadowed
-              style={{
-                alignItems: 'center',
-                borderRadius: wp(1.4),
-                margin: wp(2.8),
-                marginTop: wp(1.4),
-              }}>
-              <TextInput
-                placeholder="Enter rate"
-                value={offer_rate}
-                keyboardType="phone-pad"
-                onChangeText={this.set_rate}
-                style={{
-                  flex: 1,
-                  borderRadius: wp(1),
-                  padding: wp(2.8),
-                  fontSize: wp(5),
-                }}
-              />
-              <View>
-                <Bg_view
-                  horizontal
+            {buy_filter ? (
+              <Bg_view style={{margin: wp(2.8)}} horizontal shadowed>
+                <View
                   style={{
-                    borderRadius: wp(1),
-                    height: hp(7.5),
-                    padding: wp(2.8),
-                    borderLeftColor: '#ccc',
-                    borderLeftWidth: 1,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    borderRadius: wp(1.4),
+                    margin: wp(1.4),
                   }}>
-                  <Icon icon={'nigeria_flag_rectangle.png'} />
-                  <Fr_text style={{marginLeft: wp(1.4)}}>{'NGN'}</Fr_text>
-                </Bg_view>
-              </View>
-            </Bg_view>
+                  <View
+                    style={{
+                      flex: 1,
+                      borderRadius: wp(1),
+                      padding: wp(1.4),
+                      fontSize: wp(5),
+                    }}>
+                    <Fr_text capitalise>
+                      {buy_filter.purpose_full.title}
+                    </Fr_text>
+                  </View>
+                  {buy_filter.purpose_full.icon ? (
+                    <View>
+                      <Bg_view
+                        horizontal
+                        style={{
+                          borderRadius: wp(1),
+                          height: hp(7.5),
+                          padding: wp(1.4),
+                          borderLeftColor: '#ccc',
+                          borderLeftWidth: 1,
+                        }}>
+                        <Icon icon={buy_filter.purpose_full.icon} />
+                      </Bg_view>
+                    </View>
+                  ) : null}
+                </View>
+              </Bg_view>
+            ) : (
+              <Loadindicator />
+            )}
 
-            {amount && offer_rate && offer_rate > 0 && amount > 0 ? (
+            {amount && amount > 0 && buy_filter ? (
               <Stretched_button title="send offer" action={this.send_offer} />
             ) : null}
 
