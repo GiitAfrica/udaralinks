@@ -59,12 +59,11 @@ class Onsale_details extends React.Component {
   send_offer = async () => {
     let {route} = this.props;
     let {onsale, user} = route.params;
-    let {amount, buy_filter} = this.state;
+    let {amount} = this.state;
 
     let offer = {
       amount: Number(amount),
       offer_rate: Number(onsale.rate),
-      purpose: buy_filter.purpose_full._id,
       user: user._id,
       onsale: onsale._id,
       seller: onsale.seller._id,
@@ -132,6 +131,7 @@ class Onsale_details extends React.Component {
                   borderRadius: wp(1),
                   padding: wp(2.8),
                   fontSize: wp(5),
+                  color: '#000',
                 }}
               />
               <View>
@@ -151,59 +151,6 @@ class Onsale_details extends React.Component {
                 </Bg_view>
               </View>
             </Bg_view>
-
-            <Bg_view horizontal style={{justifyContent: 'space-between'}}>
-              <Fr_text style={{margin: wp(2.8), marginBottom: 0}} accent>
-                State Purpose
-              </Fr_text>
-              <Fr_text
-                opacity={0.8}
-                italic
-                size={wp(3.5)}
-                style={{textAlign: 'right', margin: wp(2.8)}}>
-                Udara fee - 0.5%
-              </Fr_text>
-            </Bg_view>
-            {buy_filter ? (
-              <Bg_view style={{margin: wp(2.8)}} horizontal shadowed>
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    borderRadius: wp(1.4),
-                    margin: wp(1.4),
-                  }}>
-                  <View
-                    style={{
-                      flex: 1,
-                      borderRadius: wp(1),
-                      padding: wp(1.4),
-                      fontSize: wp(5),
-                    }}>
-                    <Fr_text capitalise>
-                      {buy_filter.purpose_full.title}
-                    </Fr_text>
-                  </View>
-                  {buy_filter.purpose_full.icon ? (
-                    <View>
-                      <Bg_view
-                        horizontal
-                        style={{
-                          borderRadius: wp(1),
-                          height: hp(7.5),
-                          padding: wp(1.4),
-                          borderLeftColor: '#ccc',
-                          borderLeftWidth: 1,
-                        }}>
-                        <Icon icon={buy_filter.purpose_full.icon} />
-                      </Bg_view>
-                    </View>
-                  ) : null}
-                </View>
-              </Bg_view>
-            ) : (
-              <Loadindicator />
-            )}
 
             {amount && amount > 0 && buy_filter ? (
               <Stretched_button title="send offer" action={this.send_offer} />

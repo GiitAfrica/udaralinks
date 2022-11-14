@@ -97,8 +97,10 @@ class Bank_accounts extends React.Component {
               ) : (
                 <List_empty
                   text="No saved bank accounts"
+                  style={{alignItems: 'center', justifyContent: 'center'}}
                   data={
-                    <Bg_view style={{alignItems: 'center'}}>
+                    <Bg_view
+                      style={{alignItems: 'center', justifyContent: 'center'}}>
                       <Text_btn
                         text="Add bank"
                         action={this.toggle_new_bank_account?.toggle_show_modal}
@@ -111,11 +113,13 @@ class Bank_accounts extends React.Component {
           ) : (
             <Loadindicator />
           )}
-          <Text_btn
-            centralise
-            text="Add"
-            action={() => this.toggle_new_bank_account?.toggle_show_modal()}
-          />
+          {bank_accounts && !bank_accounts.length ? null : (
+            <Text_btn
+              centralise
+              text="Add"
+              action={() => this.toggle_new_bank_account?.toggle_show_modal()}
+            />
+          )}
         </ScrollView>
 
         <Cool_modal

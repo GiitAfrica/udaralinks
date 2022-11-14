@@ -1,5 +1,5 @@
 import React from 'react';
-import {FlatList, KeyboardAvoidingView, TextInput} from 'react-native';
+import {FlatList, Image, KeyboardAvoidingView, TextInput} from 'react-native';
 import {emitter, Sock_offer_status, User} from '../../Udara';
 import Bg_view from '../Components/Bg_view';
 import Fr_text from '../Components/Fr_text';
@@ -20,6 +20,9 @@ import Deposit_to_escrow from '../Components/deposit_to_escrow';
 import Fulfil from '../Components/fulfil';
 import Confirm_transaction from '../Components/confirm_transaction';
 import Countdown from '../Components/countdown';
+import RNFS from 'react-native-fs';
+
+let doc_dir = RNFS.DocumentDirectoryPath;
 
 class Chat extends React.Component {
   constructor(props) {
@@ -201,10 +204,19 @@ class Chat extends React.Component {
   };
 
   toggle_attachments = async () => {
-    console.log('HERE');
-    let files = await DocumentPicker.pick({mode: 'open'});
+    let files = await DocumentPicker.pick({
+      mode: 'open',
+      type: DocumentPicker.types.images,
+      allowMultiSelection: false,
+      readContent: true,
+    });
 
-    console.log(files);
+    files &&
+      files[0] &&
+      this.setState({
+        files,
+        file_base64: await RNFS.readFile(files[0].uri, 'base64'),
+      });
   };
 
   set_message_text = text => this.setState({text});
@@ -213,7 +225,8 @@ class Chat extends React.Component {
     this.setState({sending: true});
     let {route} = this.props;
     let {onsale, offer} = route.params;
-    let {chat, text, attachment} = this.state;
+    let {chat, text, files, file_base64, attachment} = this.state;
+    if (file_base64) attachment = new Array(file_base64);
 
     if (!chat) {
       chat = {
@@ -248,13 +261,22 @@ class Chat extends React.Component {
           ? offer.user._id
           : onsale.seller._id,
       attachment,
+      files: null,
+      file_base64: null,
     };
 
     emitter.emit('send_message', {message, chat}, msg => {
       let {messages} = this.state;
       messages = new Array(...messages, msg);
       this.setState(
-        {messages, sending: false, text: '', attachment: new Array()},
+        {
+          messages,
+          sending: false,
+          text: '',
+          files: null,
+          file_base64: null,
+          attachment: new Array(),
+        },
         this.flat_list.scrollToOffset({offset: 0, animated: true}),
       );
     });
@@ -629,8 +651,16 @@ class Chat extends React.Component {
   aday = 60 * 60 * 24 * 1000;
 
   render() {
-    let {text, attachment, sending, loading_more, is_typing, messages} =
-      this.state;
+    let {
+      text,
+      files,
+      attachment,
+      file_base64,
+      sending,
+      loading_more,
+      is_typing,
+      messages,
+    } = this.state;
     let {route, navigation} = this.props;
     let {onsale, offer} = route.params;
     let {amount, user} = offer;
@@ -697,6 +727,24 @@ class Chat extends React.Component {
                       )} is typing`}
                     </Fr_text>
                   ) : null}
+
+                  {files && files.length ? (
+                    <Bg_view style={{paddingHorizontal: wp(4)}} horizontal>
+                      <Image
+                        source={{uri: files[0].uri}}
+                        style={{
+                          height: 100,
+                          width: 100,
+                          borderRadius: wp(2),
+                          resizeMode: 'contain',
+                        }}
+                      />
+                      <Text_btn
+                        text=" X "
+                        action={() => this.setState({files: null})}
+                      />
+                    </Bg_view>
+                  ) : null}
                   <Bg_view
                     horizontal
                     style={{
@@ -707,7 +755,7 @@ class Chat extends React.Component {
                     <Bg_view
                       horizontal
                       style={{
-                        backgroundColor: '#ddd',
+                        backgroundColor: '#eee',
                         borderRadius: wp(5.6),
                         marginRight: wp(1.4),
                         minHeight: hp(6),
@@ -720,10 +768,12 @@ class Chat extends React.Component {
                         onFocus={this.on_focus}
                         onChangeText={this.set_message_text}
                         value={text}
+                        placeholderTextColor="#888"
                         style={{
                           fontSize: wp(4),
                           paddingHorizontal: wp(4),
                           flex: 1,
+                          color: '#000',
                         }}
                       />
                       <Icon
@@ -733,7 +783,7 @@ class Chat extends React.Component {
                     </Bg_view>
                     {sending ? (
                       <Loadindicator />
-                    ) : !text && !attachment.length ? null : (
+                    ) : !text && !attachment.length && !file_base64 ? null : (
                       <Icon
                         icon={require('../../android/app/src/main/assets/Icons/chat_send_icon.png')}
                         action={this.send_message}

@@ -46,18 +46,9 @@ class Sell extends React.Component {
   };
 
   is_set = () => {
-    let {value, rate, purposes} = this.state;
+    let {value, rate} = this.state;
 
-    return value <= 0 || rate <= 0 || !value || !rate || !purposes.length;
-  };
-
-  handle_purpose = purpose => {
-    let {purposes} = this.state;
-    if (purposes.find(purpose_ => purpose_._id === purpose._id))
-      purposes = purposes.filter(purpose_ => purpose_._id !== purpose._id);
-    else purposes = new Array(...purposes, purpose);
-
-    this.setState({purposes});
+    return value <= 0 || rate <= 0 || !value || !rate;
   };
 
   set_value = value => this.setState({value});
@@ -88,7 +79,6 @@ class Sell extends React.Component {
       minimum_sell_value,
       currency_full,
       offer_terms,
-      purposes,
     } = this.state;
 
     let sale = {
@@ -96,7 +86,6 @@ class Sell extends React.Component {
       value: Number(value),
       currency: currency || 'dollar',
       offer_terms,
-      purposes: purposes.map(p => p._id),
       seller: wallet.user,
       wallet: wallet._id,
       alphabetic_name: currency_full.alphabetic_name,
@@ -118,16 +107,8 @@ class Sell extends React.Component {
 
   render() {
     let {navigation} = this.props;
-    let {
-      value,
-      currency_full,
-      all_purposes,
-      purposes,
-      minimum_sell_value,
-      offer_terms,
-      rate,
-      loading,
-    } = this.state;
+    let {value, currency_full, minimum_sell_value, offer_terms, rate, loading} =
+      this.state;
 
     return (
       <Bg_view flex style={{paddingHorizontal: wp(2.8)}}>
@@ -157,6 +138,7 @@ class Sell extends React.Component {
                   padding: wp(4),
                   fontSize: wp(5),
                   shadowColor: '#ccc',
+                  color: '#000',
                 }}
               />
               <TouchableWithoutFeedback
@@ -200,6 +182,7 @@ class Sell extends React.Component {
                   borderRadius: wp(1),
                   padding: wp(4),
                   fontSize: wp(5),
+                  color: '#000',
                 }}
               />
               <View>
@@ -238,6 +221,7 @@ class Sell extends React.Component {
                   borderRadius: wp(1),
                   padding: wp(4),
                   fontSize: wp(5),
+                  color: '#000',
                 }}
               />
               <View>
@@ -256,22 +240,6 @@ class Sell extends React.Component {
                   </Fr_text>
                 </Bg_view>
               </View>
-            </Bg_view>
-            <Fr_text accent>Purposes</Fr_text>
-
-            <Bg_view style={{flexWrap: 'wrap'}} horizontal>
-              {all_purposes ? (
-                all_purposes.map(purpose => (
-                  <Text_btn
-                    capitalise
-                    accent={purposes.find(p => p._id === purpose._id)}
-                    text={purpose.title}
-                    action={() => this.handle_purpose(purpose)}
-                  />
-                ))
-              ) : (
-                <Loadindicator />
-              )}
             </Bg_view>
           </Bg_view>
 
@@ -296,6 +264,7 @@ class Sell extends React.Component {
                 padding: wp(4),
                 fontSize: wp(4.5),
                 minHeight: hp(5),
+                color: '#000',
               }}
             />
           </Bg_view>

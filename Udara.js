@@ -42,6 +42,7 @@ import Submit_dispute from './src/Screens/submit_dispute';
 import Dispute from './src/Screens/dispute';
 import Disputes from './src/Screens/disputes';
 import Generate_account_number from './src/Screens/generate_account_number';
+import Buyer_offers from './src/Screens/Buyer_offers';
 
 const User = React.createContext();
 
@@ -205,6 +206,7 @@ class App_stack_entry extends React.Component {
         <App_stack.Screen name="dispute" component={Dispute} />
         <App_stack.Screen name="disputes" component={Disputes} />
         <App_stack.Screen name="chat" component={Chat} />
+        <App_stack.Screen name="buyer_offers" component={Buyer_offers} />
         <App_stack.Screen
           name="generate_account_number"
           component={Generate_account_number}
@@ -268,7 +270,6 @@ class Udara extends React.Component {
       }
     } else {
       let result = await get_request(`user_refresh/${user}`);
-
       if (result) {
         this.setState({user: result.user, wallet: result.wallet, logged: true});
         await AsyncStorage.setItem('user', result.user._id);
@@ -313,30 +314,25 @@ class Udara extends React.Component {
       } else toast('Topup Failed!');
     };
 
-    this.withdraw = async ({value, currency}) => {
+    this.withdraw = async ({value, paycheck, transaction}) => {
       let {wallet} = this.state;
 
-      if (wallet[currency] < value) return toast('Insufficient balance');
+      if (paycheck) {
+        if (wallet['profits'] < value) return toast('Insufficient balance');
+      } else if (wallet['naira'] < value) return toast('Insufficient balance');
 
-      let response = await post_request(`withdraw`, {
-        value,
-        currency,
-        wallet: wallet._id,
-        user: wallet.user,
-      });
+      if (paycheck) {
+        wallet['profits'] -= value;
+        if (transaction) transaction.paycheck = true;
+      } else wallet['naira'] -= value;
 
-      if (response.ok) {
-        wallet[currency] -= value;
-        emitter.emit('new_transaction', response.transaction);
+      transaction && emitter.emit('new_transaction', transaction);
 
-        this.setState({wallet});
-
-        return true;
-      } else toast('Withdraw Failed!');
+      this.setState({wallet});
     };
 
     this.refresh_wallet = async () => {
-      toast('Refreshing wallet...')
+      toast('Refreshing wallet...');
       let wallet = await get_request(`refresh_wallet/${this.state.wallet._id}`);
 
       wallet && wallet._id && this.setState({wallet});
@@ -383,7 +379,8 @@ class Udara extends React.Component {
       });
 
     this.send_message = async ({message, chat}) => {
-      this.sock.emit('message', {to: message.to, chat, message});
+      if (this.sock) this.sock.emit('message', {to: message.to, chat, message});
+      else toast('Message not sent. You are not connected.');
       message._id = Date.now();
       message.created = Date.now();
 

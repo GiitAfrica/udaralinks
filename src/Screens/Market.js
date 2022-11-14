@@ -181,6 +181,10 @@ class Market extends React.Component {
                   </Fr_text>
                 </Bg_view>
                 <Icon
+                  icon={require('../../android/app/src/main/assets/Icons/chat_send_icon.png')}
+                  action={() => navigation.navigate('buyer_offers')}
+                />
+                <Icon
                   icon={require('../../android/app/src/main/assets/Icons/refresh.png')}
                   action={() => this.fetch_currencies(true)}
                 />

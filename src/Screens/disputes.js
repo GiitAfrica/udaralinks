@@ -16,7 +16,6 @@ class Disputes extends React.Component {
 
   componentDidMount = async () => {
     let disputes = await post_request('disputes', {reset_pager: true});
-    console.log(disputes);
     this.setState({disputes});
   };
 

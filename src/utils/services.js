@@ -1,5 +1,9 @@
 let domain = `${
-  false ? 'https://mobile.udaralinksapp.com' : 'http://10.0.2.2:3600'
+  true
+    ? 'https://mobile.udaralinksapp.com'
+    : false
+    ? 'http://192.168.43.203:3600'
+    : 'http://10.0.2.2:3600'
 }`;
 
 const get_request = async path => {

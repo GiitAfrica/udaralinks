@@ -63,7 +63,7 @@ class Update_username extends React.Component {
                 editable={this.user !== Admin_id}
                 value={username}
                 onChangeText={this.set_username}
-                style={{fontSize: wp(5)}}
+                style={{fontSize: wp(5), color: '#000'}}
                 placeholder="..."
               />
             </Bg_view>

@@ -62,7 +62,7 @@ class Update_email extends React.Component {
               <TextInput
                 value={email}
                 onChangeText={this.set_username}
-                style={{fontSize: wp(5)}}
+                style={{fontSize: wp(5), color: '#000'}}
                 placeholder="..."
               />
             </Bg_view>

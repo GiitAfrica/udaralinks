@@ -1,18 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React from 'react';
-import {
-  TextInput,
-  TouchableNativeFeedback,
-  TouchableWithoutFeedback,
-  View,
-} from 'react-native';
-import Purposes from './purposes';
+import {TextInput, TouchableNativeFeedback, View} from 'react-native';
 import {hp, wp} from '../utils/dimensions';
 import Bg_view from './Bg_view';
 import Cool_modal from './cool_modal';
 import Currencies from './currencies';
 import Fr_text from './Fr_text';
-import Icon from './Icon';
 import Stretched_button from './Stretched_button';
 
 class Buy extends React.Component {
@@ -20,7 +13,7 @@ class Buy extends React.Component {
     super(props);
 
     let {default_value} = this.props;
-    let {currency, purpose, value, rate} = default_value || {
+    let {currency, value, rate} = default_value || {
       currency: {
         name: 'dollar',
         icon: 'dollar_icon.png',
@@ -35,8 +28,6 @@ class Buy extends React.Component {
       rate,
       currency: currency.name,
       currency_full: currency,
-      purpose: purpose?._id,
-      purpose_full: purpose,
     };
   }
 
@@ -59,17 +50,13 @@ class Buy extends React.Component {
   set_currency = (currency, currency_full) =>
     this.setState({currency, currency_full});
 
-  set_purpose = (purpose, purpose_full) =>
-    this.setState({purpose, purpose_full});
-
   buy = async () => {
     this.setState({loading: true});
     let {navigation, close_modal, set_filter} = this.props;
-    let {value, purpose_full, currency_full} = this.state;
+    let {value, currency_full} = this.state;
 
     let buy_filter = {
       value,
-      purpose_full,
       currency_full,
     };
     await AsyncStorage.setItem('buy_filter', JSON.stringify(buy_filter));
@@ -81,7 +68,7 @@ class Buy extends React.Component {
   };
 
   render() {
-    let {value, purpose_full, currency_full} = this.state;
+    let {value, currency_full} = this.state;
 
     return (
       <Bg_view
@@ -107,6 +94,7 @@ class Buy extends React.Component {
               elevation: 5,
               padding: wp(4),
               fontSize: wp(5),
+              color: '#000',
               shadowColor: '#ccc',
             }}
           />
@@ -128,62 +116,11 @@ class Buy extends React.Component {
           </TouchableNativeFeedback>
         </Bg_view>
 
-        <Fr_text bold size={wp(5)} style={{margin: wp(2.8)}}>
-          Purpose
-        </Fr_text>
-        <Bg_view horizontal shadowed>
-          <TouchableNativeFeedback
-            onPress={() => this.cool_modal_purposes?.toggle_show_modal()}>
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                borderRadius: wp(1.4),
-                margin: wp(1.4),
-              }}>
-              <View
-                style={{
-                  flex: 1,
-                  borderRadius: wp(1),
-                  padding: wp(1.4),
-                  fontSize: wp(5),
-                }}>
-                <Fr_text capitalise>
-                  {purpose_full ? purpose_full.title : 'Select Purpose'}
-                </Fr_text>
-              </View>
-              <View>
-                <Bg_view
-                  horizontal
-                  style={{
-                    borderRadius: wp(1),
-                    height: hp(7.5),
-                    padding: wp(1.4),
-                    borderLeftColor: '#ccc',
-                    borderLeftWidth: 1,
-                  }}>
-                  <Icon icon={purpose_full && purpose_full.icon} />
-                </Bg_view>
-              </View>
-            </View>
-          </TouchableNativeFeedback>
-        </Bg_view>
-
         <Stretched_button
-          disabled={!value || Number(value) <= 0 || !purpose_full}
+          disabled={!value || Number(value) <= 0}
           title="continue"
           action={this.buy}
         />
-
-        <Cool_modal
-          ref={cool_modal_purposes =>
-            (this.cool_modal_purposes = cool_modal_purposes)
-          }>
-          <Purposes
-            select={this.set_purpose}
-            close_modal={this.cool_modal_purposes?.toggle_show_modal}
-          />
-        </Cool_modal>
         <Cool_modal ref={cool_modal => (this.cool_modal = cool_modal)}>
           <Currencies
             select={this.set_currency}

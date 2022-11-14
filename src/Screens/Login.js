@@ -93,6 +93,8 @@ class Login extends React.Component {
     new_user = new_user || route?.params?.new_user;
     phone = set_phone_et_country_code(phone, country_code.code);
 
+    console.log(phone);
+
     new_user &&
       (await post_request('update_password', {
         key: password,

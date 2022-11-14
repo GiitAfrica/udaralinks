@@ -29,7 +29,7 @@ const Search_input = ({
       <TextInput
         onChangeText={set_search_value}
         value={search_value}
-        style={{flex: 1, paddingRight: wp(2.8)}}
+        style={{flex: 1, paddingRight: wp(2.8), color: '#000'}}
         autoFocus={!no_autofocus}
         placeholder={placeholder || 'Search...'}
       />

@@ -20,6 +20,7 @@ class Generate_account_number extends React.Component {
 
   componentDidMount = async () => {
     let {value, user} = this.props.route.params;
+    this.value = value;
 
     let account_details = await post_request('request_account_details', {
       amount: value,
@@ -67,6 +68,13 @@ class Generate_account_number extends React.Component {
                 </Fr_text>
                 <Fr_text bold size={22} capitalise>
                   {account_details.bank}
+                </Fr_text>
+
+                <Fr_text size={16} style={{marginTop: hp(1.4)}}>
+                  Amount
+                </Fr_text>
+                <Fr_text bold size={22}>
+                  {`NGN ${Number(this.value).toFixed(2)}`}
                 </Fr_text>
               </Bg_view>
             )}

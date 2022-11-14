@@ -1,7 +1,11 @@
 import React from 'react';
+import {Image, TouchableWithoutFeedback} from 'react-native';
 import {hp, wp} from '../utils/dimensions';
+import {domain} from '../utils/services';
 import Bg_view from './Bg_view';
+import Cool_modal from './cool_modal';
 import Fr_text from './Fr_text';
+import Image_preview from './image_preview';
 import Offer from './offer';
 
 class Message extends React.Component {
@@ -10,6 +14,8 @@ class Message extends React.Component {
 
     this.state = {};
   }
+
+  toggle_image_preview = () => this.image_preview.toggle_show_modal();
 
   componentDidMount = () => {};
 
@@ -37,7 +43,13 @@ class Message extends React.Component {
 
     let is_me = loggeduser._id === from;
     let is_offer_attached =
-      attachment && attachment.length && attachment[0]._id.startsWith('offer');
+        attachment &&
+        attachment.length &&
+        attachment[0] &&
+        attachment[0]._id?.startsWith('offer'),
+      is_image_attached;
+
+    if (!is_offer_attached) is_image_attached = attachment && attachment[0];
 
     return (
       <Bg_view
@@ -70,6 +82,23 @@ class Message extends React.Component {
             {text}
           </Fr_text>
         )}
+        {is_image_attached ? (
+          <TouchableWithoutFeedback onPress={() => this.toggle_image_preview()}>
+            <Image
+              source={
+                is_image_attached.endsWith('.jpg')
+                  ? {uri: `${domain}/Images/${is_image_attached}`}
+                  : {uri: `data:image/jpeg;base64,${is_image_attached}`}
+              }
+              style={{
+                height: 100,
+                width: 100,
+                borderRadius: wp(2),
+                padding: wp(2.8),
+              }}
+            />
+          </TouchableWithoutFeedback>
+        ) : null}
         <Fr_text
           style={{
             textAlign: 'right',
@@ -82,6 +111,16 @@ class Message extends React.Component {
           color="#333">
           {this.format_time(created)}
         </Fr_text>
+
+        <Cool_modal
+          flex
+          height={hp()}
+          ref={image_preview => (this.image_preview = image_preview)}>
+          <Image_preview
+            image={is_image_attached}
+            toggle={this.toggle_image_preview}
+          />
+        </Cool_modal>
       </Bg_view>
     );
   }

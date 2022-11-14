@@ -303,7 +303,13 @@ class Wallet extends React.Component {
 
               <Cool_modal
                 ref={paycheck_modal => (this.paycheck_modal = paycheck_modal)}>
-                <Paycheck user={user} close_modal={this.paycheck} />
+                <Withdraw
+                  wallet={this.wallet}
+                  user={user}
+                  navigation={navigation}
+                  paycheck
+                  decorator={() => this.paycheck_modal?.toggle_show_modal()}
+                />
               </Cool_modal>
 
               <Cool_modal
@@ -320,7 +326,7 @@ class Wallet extends React.Component {
                   default_value={value}
                   user={user}
                   navigation={navigation}
-                  decorator={this.topup_modal?.toggle_show_modal}
+                  decorator={() => this.topup_modal?.toggle_show_modal()}
                 />
               </Cool_modal>
 
@@ -330,7 +336,7 @@ class Wallet extends React.Component {
                   wallet={this.wallet}
                   user={user}
                   navigation={navigation}
-                  decorator={this.withdraw_modal?.toggle_show_modal}
+                  decorator={() => this.withdraw_modal?.toggle_show_modal()}
                 />
               </Cool_modal>
 
@@ -340,7 +346,9 @@ class Wallet extends React.Component {
                 }>
                 <Currencies
                   select={this.set_to_currency}
-                  close_modal={this.to_currency_modal?.toggle_show_modal}
+                  close_modal={() =>
+                    this.to_currency_modal?.toggle_show_modal()
+                  }
                 />
               </Cool_modal>
 

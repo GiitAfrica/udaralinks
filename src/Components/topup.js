@@ -79,6 +79,7 @@ class Topup extends React.Component {
               borderRadius: wp(1),
               padding: wp(2.8),
               fontSize: wp(5),
+              color: '#000',
             }}
           />
           <View>

@@ -91,6 +91,7 @@ class Amount_to_sell extends React.Component {
               padding: wp(4),
               fontSize: wp(5),
               shadowColor: '#ccc',
+              color: '#000',
             }}
           />
           <TouchableNativeFeedback
@@ -130,6 +131,7 @@ class Amount_to_sell extends React.Component {
               padding: wp(4),
               fontSize: wp(5),
               shadowColor: '#ccc',
+              color: '#000',
             }}
           />
           <View>

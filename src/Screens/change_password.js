@@ -58,7 +58,7 @@ class Change_password extends React.Component {
       <Bg_view flex style={{paddingLeft: wp(2.8)}} no_bg>
         <Fr_text opacity={0.8}>{label}</Fr_text>
         <TextInput
-          style={{fontSize: wp(4.5), margin: 0, padding: 0}}
+          style={{fontSize: wp(4.5), margin: 0, padding: 0, color: '#000'}}
           placeholder={placeholder}
           onChangeText={text_entry}
           secureTextEntry={!this.state.reveal_passwords}

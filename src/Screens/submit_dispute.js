@@ -84,6 +84,7 @@ class Submit_dispute extends React.Component {
                   style={{
                     flex: 1,
                     fontSize: wp(5),
+                    color: '#000',
                   }}
                 />
               </Bg_view>
@@ -105,6 +106,7 @@ class Submit_dispute extends React.Component {
                     flex: 1,
                     fontSize: wp(5),
                     minHeight: hp(10),
+                    color: '#000',
                   }}
                 />
               </Bg_view>

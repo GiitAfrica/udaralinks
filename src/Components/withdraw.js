@@ -30,14 +30,21 @@ class Withdraw extends React.Component {
     this.currency_modal && this.currency_modal.toggle_show_modal();
   };
 
-  set_value = value =>
+  set_value = value => {
+    let {paycheck, wallet} = this.props;
+    let {valid} = this.state;
+
+    valid = Number(value) && Number(value) > 0;
+    if (valid) {
+      if (paycheck) valid = Number(value) <= wallet.profits;
+      else valid = Number(value) <= wallet.naira;
+    }
+
     this.setState({
       value,
-      valid:
-        Number(value) &&
-        Number(value) > 0 &&
-        Number(value) <= this.props.wallet.naira,
+      valid,
     });
+  };
 
   set_bank_account = bank_account =>
     this.setState({bank_account}, () =>
@@ -46,29 +53,37 @@ class Withdraw extends React.Component {
 
   withdraw = async () => {
     this.setState({loading: true});
-    let {decorator, user} = this.props;
+    let {decorator, user, paycheck} = this.props;
     let {value, currency, bank_account} = this.state;
     if (!Number(value)) {
       toast('Invalid transaction value');
       return this.setState({loading: false});
     }
 
-    let result = await post_request('withdraw', {
-      user: user._id,
-      wallet: user.wallet._id,
-      bank_account,
-      amount: value,
-    });
+    try {
+      let result = await post_request('withdraw', {
+        user: user._id,
+        wallet: user.wallet._id,
+        bank_account,
+        amount: value,
+        paycheck,
+      });
 
-    if (result && result.ok)
-      emitter.emit('withdraw', {value: Number(value), currency});
-    else toast('Err, Something went wrong.');
+      if (result && result.ok)
+        emitter.emit('withdraw', {
+          value: Number(value),
+          paycheck,
+          transaction: result.transaction,
+          currency,
+        });
+      else toast('Err, Something went wrong.');
+    } catch (e) {}
 
     decorator && decorator();
   };
 
   render = () => {
-    let {user} = this.props;
+    let {user, paycheck} = this.props;
     let {value, valid, bank_account, loading} = this.state;
 
     return (
@@ -81,7 +96,7 @@ class Withdraw extends React.Component {
           borderRadius: wp(4),
         }}>
         <Fr_text bold size={wp(5)} style={{margin: wp(2.8)}}>
-          Amount to withdraw
+          {paycheck ? `Paycheck` : `Amount to withdraw`}
         </Fr_text>
         <Bg_view
           horizontal
@@ -103,6 +118,7 @@ class Withdraw extends React.Component {
               borderRadius: wp(1),
               padding: wp(2.8),
               fontSize: wp(5),
+              color: '#000',
             }}
           />
           <View>
