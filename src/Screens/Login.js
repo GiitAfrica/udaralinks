@@ -15,10 +15,9 @@ import Icon from '../Components/Icon';
 import Stretched_button from '../Components/Stretched_button';
 import Text_input from '../Components/Text_input';
 import {hp, wp} from '../utils/dimensions';
-import {phone_regex, validate_phone} from '../utils/functions';
+import {validate_phone} from '../utils/functions';
 import {post_request} from '../utils/services';
 import toast from '../utils/toast';
-import {set_phone_et_country_code} from './registration';
 
 const default_country_code = {
   code: '+234',
@@ -35,12 +34,11 @@ class Login extends React.Component {
     super(props);
 
     let {route} = this.props;
-    let phone = route?.params?.phone || '',
+    let email = route?.params?.email || '',
       country_code = route?.params?.country_code || default_country_code;
 
-    console.log(phone, country_code.code);
     this.state = {
-      phone: phone.replace(country_code.code, ''),
+      email,
       password: '',
       country_code,
     };
@@ -52,7 +50,7 @@ class Login extends React.Component {
       new_user = JSON.parse(new_user);
       this.setState({
         new_user: true,
-        phone: new_user.phone.replace(new_user.country_code.code, ''),
+        email: new_user.email.replace(new_user.country_code.code, ''),
         country_code: new_user.country_code,
         user: new_user._id,
       });
@@ -66,13 +64,13 @@ class Login extends React.Component {
   toggle_reveal_password = () =>
     this.setState({reveal_password: !this.state.reveal_password});
 
-  set_phone = phone => this.setState({phone});
+  set_email = email => this.setState({email});
 
   set_password = password => this.setState({password});
 
   is_set = () => {
-    let {phone, password} = this.state;
-    return validate_phone(phone) && password.length >= 6;
+    let {email, password} = this.state;
+    return validate_phone(email) && password.length >= 6;
   };
 
   toggle_country_codes = () =>
@@ -84,16 +82,10 @@ class Login extends React.Component {
   login = async () => {
     this.setState({loading: true});
     let {route} = this.props;
-    let {phone, country_code, user, new_user, password} = this.state;
-
-    // if (!phone_regex.test(phone) || password.length < 6)
-    //   return this.setState({loading: false}, () => toast('Invalid inputs'));
+    let {email, user, new_user, password} = this.state;
 
     user = user || route?.params?.user;
     new_user = new_user || route?.params?.new_user;
-    phone = set_phone_et_country_code(phone, country_code.code);
-
-    console.log(phone);
 
     new_user &&
       (await post_request('update_password', {
@@ -102,7 +94,7 @@ class Login extends React.Component {
         user,
       }));
 
-    let result = await post_request('logging_in', {phone, key: password});
+    let result = await post_request('logging_in', {email, key: password});
     await AsyncStorage.removeItem('new_user');
     this.setState({loading: false});
     result && result.user
@@ -113,20 +105,17 @@ class Login extends React.Component {
   render = () => {
     let {route} = this.props;
     let new_user = route?.params?.new_user || this.state.new_user;
-    let {phone, password, reveal_password, loading, country_code} = this.state;
+    let {email, password, reveal_password, loading, country_code} = this.state;
 
     return (
       <Bg_view flex>
         <KeyboardAvoidingView style={{flex: 1}}>
           <ScrollView showVerticalScrollIndicator={false} style={{flex: 1}}>
             <Bg_view style={{alignItems: 'center'}} flex no_bg>
-              <Fr_text
-                bold="900"
-                size={wp(10)}
-                accent
-                style={{marginTop: hp(10)}}>
-                Udara
-              </Fr_text>
+              <Icon
+                icon={require('../assets/Icons/udara_logo.png')}
+                style={{height: hp(10), width: wp(50), marginTop: hp(10)}}
+              />
               <Bg_view
                 style={{
                   elevation: 10,
@@ -148,11 +137,11 @@ class Login extends React.Component {
                   Login
                 </Fr_text>
                 <Text_input
-                  value={phone}
-                  placeholder="type your phone"
-                  label="phone number"
-                  type="phone-pad"
-                  on_change_text={this.set_phone}
+                  value={email}
+                  placeholder="type your email"
+                  label="email Address"
+                  type="email-pad"
+                  on_change_text={this.set_email}
                   disabled={!!new_user}
                   left_icon={
                     <TouchableWithoutFeedback
@@ -163,14 +152,6 @@ class Login extends React.Component {
                           icon={country_code.flag}
                           style={{height: wp(10), width: wp(10)}}
                         />
-
-                        <Fr_text
-                          size={wp(4.5)}
-                          bold
-                          color="#28100B"
-                          style={{marginLeft: wp(1.4)}}>
-                          {country_code.code}
-                        </Fr_text>
                       </View>
                     </TouchableWithoutFeedback>
                   }

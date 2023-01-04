@@ -1,13 +1,11 @@
 import React from 'react';
 import {KeyboardAvoidingView, ScrollView, TextInput} from 'react-native';
-import {emitter} from '../../Udara';
 import Bg_view from '../Components/Bg_view';
 import Fr_text from '../Components/Fr_text';
 import Header from '../Components/header';
 import Stretched_button from '../Components/Stretched_button';
 import {hp, wp} from '../utils/dimensions';
 import {post_request} from '../utils/services';
-import toast from '../utils/toast';
 
 class Update_email extends React.Component {
   constructor(props) {
@@ -16,7 +14,7 @@ class Update_email extends React.Component {
     let {email, user} = this.props.route.params;
     this.user = user;
     this.current_email = email;
-    this.state = {email};
+    this.state = {email: email || user.email};
   }
 
   set_username = email =>
@@ -28,16 +26,25 @@ class Update_email extends React.Component {
         ),
     });
 
-  update_username = async () => {
+  request_otp = async () => {
     let {email} = this.state;
-    emitter.emit('email_updated', email);
-    this.props.navigation.goBack();
+    console.log(email);
+    return await post_request('request_otp', {email});
+  };
 
-    let res = await post_request('email_updated', {
+  verify = async () => {
+    let {route, navigation} = this.props;
+    let {user} = route.params;
+    let {country_code, _id} = user;
+    let {email} = this.state;
+
+    await this.request_otp();
+    navigation.navigate('verification', {
       email,
-      user: this.user,
+      from_update: true,
+      country_code,
+      user: _id,
     });
-    res === this.user && toast('Email updated!');
   };
 
   render() {
@@ -61,6 +68,7 @@ class Update_email extends React.Component {
               <Fr_text size={wp(3.5)}>Email</Fr_text>
               <TextInput
                 value={email}
+                keyboardType="email-address"
                 onChangeText={this.set_username}
                 style={{fontSize: wp(5), color: '#000'}}
                 placeholder="..."
@@ -68,9 +76,9 @@ class Update_email extends React.Component {
             </Bg_view>
 
             <Stretched_button
-              title="save new email"
+              title="submit"
               disabled={invalid_email}
-              action={this.update_username}
+              action={this.verify}
             />
           </KeyboardAvoidingView>
         </ScrollView>

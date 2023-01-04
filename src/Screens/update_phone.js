@@ -25,7 +25,7 @@ class Update_phone extends React.Component {
     let {user} = this.props.route.params;
     let {phone} = user;
     this.current_phone = phone;
-    this.state = {phone};
+    this.state = {phone, country_code: {code: '+234'}};
   }
 
   componentDidMount = async () => {

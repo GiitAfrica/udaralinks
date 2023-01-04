@@ -23,10 +23,12 @@ class Submit_dispute extends React.Component {
   set_details = details => this.setState({details});
 
   submit_dispute = async () => {
-    this.setState({loading: true});
     let {navigation, route} = this.props;
     let {offer, user, onsale} = route.params;
-    let {title, details, images} = this.state;
+    let {title, details, loading} = this.state;
+    if (loading) return;
+
+    this.setState({loading: true});
 
     let dispute = {
       title,

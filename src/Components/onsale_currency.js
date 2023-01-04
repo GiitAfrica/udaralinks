@@ -1,8 +1,7 @@
 import React from 'react';
-import {TouchableNativeFeedback, View} from 'react-native';
-import {emitter} from '../../Udara';
+import {View} from 'react-native';
+import {Admin_id, emitter} from '../../Udara';
 import {hp, wp} from '../utils/dimensions';
-import {format_quick_time} from '../utils/functions';
 import {post_request} from '../utils/services';
 import toast from '../utils/toast';
 import Bg_view from './Bg_view';
@@ -11,6 +10,7 @@ import Fr_text from './Fr_text';
 import Icon from './Icon';
 import Line from './line';
 import Proceed_to_purchase from './proceed_to_purchase';
+import Small_btn from './small_button';
 import Text_btn from './Text_btn';
 import Topup from './topup';
 
@@ -143,21 +143,10 @@ class Onsale_currency extends React.Component {
     let {show_btn, onsale, removed} = this.state;
     if (removed) return null;
 
-    let {user} = this.props;
-
+    let {user, navigation} = this.props;
     if (!onsale) return null;
 
-    let {
-      to_currency,
-      icon,
-      value,
-      likes,
-      dislikes,
-      rate,
-      status,
-      seller,
-      created,
-    } = onsale;
+    let {to_currency, minimum_sell_value, icon, value, rate, seller} = onsale;
 
     return (
       <Bg_view
@@ -170,90 +159,104 @@ class Onsale_currency extends React.Component {
           elevation: 10,
           shadowColor: '#000',
         }}>
-        <TouchableNativeFeedback
-          onPress={
-            seller._id === user._id ? this.toggle_show_btn : this.go_to_details
-          }>
+        <View>
           <View>
             <Bg_view
               horizontal
               style={{
                 justifyContent: 'space-between',
               }}>
-              <Bg_view>
+              <Bg_view horizontal>
                 <Fr_text bold capitalise>
                   {seller.username}
                 </Fr_text>
+                {seller.status === 'verified' ? (
+                  <Bg_view
+                    style={{
+                      height: wp(2),
+                      width: wp(2),
+                      borderRadius: wp(2),
+                      backgroundColor: 'green',
+                      marginLeft: wp(1.4),
+                    }}
+                  />
+                ) : null}
               </Bg_view>
-              <Fr_text capitalise size={wp(3.5)} italic accent>
-                {status || 'onsale'}
+
+              <Fr_text size={wp(3.5)} style={{maxWidth: wp(50)}} opacity={0.8}>
+                {`${Number(value * rate).toFixed()} NGN`}
               </Fr_text>
             </Bg_view>
-            <Bg_view horizontal style={{justifyContent: 'space-between'}}>
-              <Bg_view horizontal style={{alignItems: 'center'}}>
-                <Icon
-                  icon={require('../assets/Icons/like_icon.png')}
-                  action={user._id !== seller._id && this.like}
-                  text={
-                    likes ? (
-                      <Fr_text
-                        size={wp(3.5)}
-                        style={{padding: 0, marginLeft: wp(1.4)}}>
-                        {likes}
-                      </Fr_text>
-                    ) : null
-                  }
-                  style={{
-                    height: wp(3.5),
-                    width: wp(3.5),
-                    padding: 0,
-                    paddingVertical: hp(1),
-                    marginRight: wp(2.8),
-                  }}
-                />
-                <Icon
-                  icon={require('../assets/Icons/dislike_icon.png')}
-                  action={user._id !== seller._id && this.dislike}
-                  text={
-                    dislikes ? (
-                      <Fr_text
-                        size={wp(3.5)}
-                        style={{padding: 0, marginLeft: wp(1.4)}}>
-                        {dislikes}
-                      </Fr_text>
-                    ) : null
-                  }
-                  style={{
-                    height: wp(3.5),
-                    width: wp(3.5),
-                    padding: 0,
-                    paddingVertical: hp(1),
-                    marginRight: wp(2.8),
-                  }}
-                />
+            <Bg_view
+              horizontal
+              style={{justifyContent: 'space-between', alignItems: 'center'}}>
+              <Bg_view no_bg horizontal style={{alignItems: 'center'}}>
+                {minimum_sell_value && minimum_sell_value !== value ? (
+                  <Fr_text bold size={wp(4.5)} style={{maxWidth: wp(50)}}>
+                    {`${Number(minimum_sell_value).toFixed(2)} `}
+                  </Fr_text>
+                ) : null}
+                {minimum_sell_value && minimum_sell_value !== value ? (
+                  <Fr_text>{`- `}</Fr_text>
+                ) : null}
+                <Bg_view no_bg horizontal style={{alignItems: 'center'}}>
+                  <Fr_text bold size={wp(4.5)} style={{maxWidth: wp(50)}}>
+                    {`${Number(value).toFixed(2)} `}
+                  </Fr_text>
+                  <Icon icon={icon} />
+                </Bg_view>
               </Bg_view>
-              <Bg_view style={{alignItems: 'flex-end'}}>
+
+              <Bg_view
+                flex
+                style={{
+                  alignContent: 'flex-end',
+                  position: 'relative',
+                  left: wp(2.8),
+                }}>
+                {user.status !== 'verified' &&
+                value > 500 &&
+                user._id !== Admin_id ? (
+                  <Text_btn
+                    bold
+                    italic
+                    text="Verify your account"
+                    style={{alignSelf: 'flex-end'}}
+                    action={() =>
+                      navigation.navigate('account_verification', {
+                        user: user._id,
+                      })
+                    }
+                  />
+                ) : (
+                  <Small_btn
+                    min_width_null
+                    title={seller._id === user._id ? 'offers' : 'buy'}
+                    action={
+                      seller._id === user._id ? this.offers : this.go_to_details
+                    }
+                    style={{
+                      margin: 0,
+                      paddingHorizontal: wp(2.8),
+                      alignSelf: 'flex-end',
+                      height: hp(4.8),
+                    }}
+                  />
+                )}
+              </Bg_view>
+
+              <Bg_view style={{alignItems: 'flex-end'}}></Bg_view>
+            </Bg_view>
+            <Bg_view style={{justifyContent: 'space-between'}} horizontal>
+              <Bg_view horizontal style={{alignItems: 'center'}}>
                 <Fr_text
                   size={wp(3.5)}
                   style={{maxWidth: wp(50)}}
-                  opacity={0.8}>{`${Number(value * rate || 0).toFixed(
-                  2,
-                )} NGN`}</Fr_text>
-              </Bg_view>
-            </Bg_view>
-            <Bg_view style={{justifyContent: 'space-between'}} horizontal>
-              <Fr_text opacity={0.8} size={wp(3.5)} color="#333">
-                {format_quick_time(created || Date.now())}
-              </Fr_text>
-              <Bg_view no_bg horizontal style={{alignItems: 'center'}}>
-                <Icon icon={icon} />
-                <Fr_text bold size={wp(4.5)} style={{maxWidth: wp(50)}}>
-                  {` ${Number(value).toFixed(2)}`}
-                </Fr_text>
+                  opacity={0.8}>{`x ${Number(rate || 0).toFixed(2)}`}</Fr_text>
               </Bg_view>
             </Bg_view>
           </View>
-        </TouchableNativeFeedback>
+        </View>
         {show_btn ? (
           <Bg_view style={{alignItems: 'center'}}>
             <Bg_view horizontal>

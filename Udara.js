@@ -16,7 +16,6 @@ import io from 'socket.io-client';
 import Emitter from './src/utils/emitter';
 import Signup from './src/Screens/Signup';
 import Login from './src/Screens/Login';
-import Home from './src/Screens/Home';
 import Wallet from './src/Screens/Wallet';
 import Market from './src/Screens/Market';
 import Account from './src/Screens/Account';
@@ -27,7 +26,7 @@ import Congratulation from './src/Screens/congratulation';
 import {hp, wp} from './src/utils/dimensions';
 import Bg_view from './src/Components/Bg_view';
 import Icon from './src/Components/Icon';
-import {domain, get_request, post_request} from './src/utils/services';
+import {get_request, post_request, sock_domain} from './src/utils/services';
 import toast from './src/utils/toast';
 import Update_username from './src/Screens/update_username';
 import Change_password from './src/Screens/change_password';
@@ -43,6 +42,11 @@ import Dispute from './src/Screens/dispute';
 import Disputes from './src/Screens/disputes';
 import Generate_account_number from './src/Screens/generate_account_number';
 import Buyer_offers from './src/Screens/Buyer_offers';
+import Notifications from './src/Screens/notifications';
+import Home from './src/Screens/Home';
+import Account_verification from './src/Screens/Account_verification';
+import Verification_details from './src/Screens/veirification_details';
+import Verification_requests from './src/Screens/verification_requests';
 
 const User = React.createContext();
 
@@ -105,10 +109,36 @@ class Index extends React.Component {
   constructor(props) {
     super(props);
 
-    this.state = {};
+    let {route} = this.props;
+
+    this.state = {
+      unseen_notifications: route.params?.user?.new_notification || 0,
+    };
   }
 
+  componentDidMount = () => {
+    this.new_notification = () => {
+      let {unseen_notifications} = this.state;
+      unseen_notifications++;
+      this.setState({unseen_notifications});
+    };
+
+    this.seen_notification = () => {
+      this.setState({unseen_notifications: 0});
+    };
+
+    emitter.listen('new_notification', this.new_notification);
+    emitter.listen('seen_notification', this.seen_notification);
+  };
+
+  componentWillUnmount = () => {
+    emitter.remove_listener('new_notification', this.new_notification);
+    emitter.remove_listener('seen_notification', this.seen_notification);
+  };
+
   render = () => {
+    let {unseen_notifications} = this.state;
+
     return (
       <Bottom_tab.Navigator
         initialRouteName="home"
@@ -163,6 +193,20 @@ class Index extends React.Component {
           }}
         />
         <Bottom_tab.Screen
+          name="notifications"
+          component={Notifications}
+          options={{
+            tabBarLabel: 'Notifications',
+            tabBarBadge: unseen_notifications || undefined,
+            tabBarIcon: ({color, size}) => (
+              <Icon
+                icon="notification_icon.png"
+                style={{height: wp(7), width: wp(7)}}
+              />
+            ),
+          }}
+        />
+        <Bottom_tab.Screen
           name="account"
           component={Account}
           options={{
@@ -186,6 +230,8 @@ class App_stack_entry extends React.Component {
   }
 
   render = () => {
+    let {user} = this.props;
+
     return (
       <App_stack.Navigator
         initialRouteName="index"
@@ -195,7 +241,11 @@ class App_stack_entry extends React.Component {
           // gestureEnabled: true,
           animationEnabled: true,
         }}>
-        <App_stack.Screen name="index" component={Index} />
+        <App_stack.Screen
+          name="index"
+          initialParams={{user}}
+          component={Index}
+        />
         <App_stack.Screen name="change_password" component={Change_password} />
         <App_stack.Screen name="update_phone" component={Update_phone} />
         <App_stack.Screen name="update_email" component={Update_email} />
@@ -204,6 +254,18 @@ class App_stack_entry extends React.Component {
         <App_stack.Screen name="offers" component={Offers} />
         <App_stack.Screen name="submit_dispute" component={Submit_dispute} />
         <App_stack.Screen name="dispute" component={Dispute} />
+        <App_stack.Screen
+          name="verification_requests"
+          component={Verification_requests}
+        />
+        <App_stack.Screen
+          name="verification_details"
+          component={Verification_details}
+        />
+        <App_stack.Screen
+          name="account_verification"
+          component={Account_verification}
+        />
         <App_stack.Screen name="disputes" component={Disputes} />
         <App_stack.Screen name="chat" component={Chat} />
         <App_stack.Screen name="buyer_offers" component={Buyer_offers} />
@@ -226,11 +288,18 @@ class Udara extends React.Component {
     this.state = {logged: 'fetching'};
   }
 
+  pending_payloads = new Array();
+
   set_socket = user => {
-    sock = io('https://sock.udaralinksapp.com/');
+    sock = io(sock_domain);
     sock.on('user_id', socket_id => {
       this.sock = sock;
       sock.emit('user_id_return', {user, socket: socket_id});
+
+      if (this.pending_payloads.length) {
+        this.pending_payloads.map(({event, data}) => sock.emit(event, data));
+        this.pending_payloads.clear();
+      }
     });
 
     sock.on('wallet_topup', ({amount}) => {
@@ -245,11 +314,15 @@ class Udara extends React.Component {
 
     sock.on('new_message', message => emitter.emit('new_message', message));
 
-    sock.on('offer_status', payload => {
-      emitter.emit('offer_status_update', payload);
-    });
+    sock.on('offer_status', payload =>
+      emitter.emit('offer_status_update', payload),
+    );
 
     return sock.connected;
+  };
+
+  reconnect_sock = () => {
+    this.set_socket(this.state.user._id);
   };
 
   componentDidMount = async () => {
@@ -288,6 +361,9 @@ class Udara extends React.Component {
       );
       this.setState({wallet, user});
     };
+
+    this.account_verification = () =>
+      this.setState({user: {...this.state.user, status: 'pending'}});
 
     this.logged_in = async ({user, wallet}) => {
       this.setState({logged: true, user, wallet, init_screen: ''});
@@ -367,7 +443,7 @@ class Udara extends React.Component {
     this.email_updated = email =>
       this.setState({user: {...this.state.user, email}});
 
-    this.update_phone = ({phone, verify_later, country_code}) =>
+    this.update_email = ({phone, verify_later, country_code}) =>
       this.setState({
         user: {
           ...this.state.user,
@@ -379,8 +455,14 @@ class Udara extends React.Component {
       });
 
     this.send_message = async ({message, chat}) => {
-      if (this.sock) this.sock.emit('message', {to: message.to, chat, message});
-      else toast('Message not sent. You are not connected.');
+      let data = {to: message.to, chat, message},
+        event = 'message';
+      if (this.sock) this.sock.emit(event, data);
+      else {
+        this.pending_payloads.push({event, data});
+        this.reconnect_sock();
+        toast('Message resending. You are not connected.');
+      }
       message._id = Date.now();
       message.created = Date.now();
 
@@ -392,7 +474,7 @@ class Udara extends React.Component {
     this.focus_message_input = payload => this.sock.emit('is_typing', payload);
 
     emitter.listen('username_updated', this.username_updated);
-    emitter.listen('update_phone', this.update_phone);
+    emitter.listen('update_email', this.update_email);
     emitter.listen('email_updated', this.email_updated);
     emitter.listen('update_fav_currency', this.update_fav_currency);
     emitter.listen('signout', this.signout);
@@ -403,6 +485,7 @@ class Udara extends React.Component {
     emitter.listen('verified', this.verified);
     emitter.listen('refresh_wallet', this.refresh_wallet);
     emitter.listen('logged_in', this.logged_in);
+    emitter.listen('account_verification', this.account_verification);
     emitter.listen('send_message', this.send_message);
     emitter.listen('focus_message_input', this.focus_message_input);
     emitter.listen('blur_message_input', this.blur_message_input);
@@ -420,7 +503,7 @@ class Udara extends React.Component {
           <Bg_view flex>
             <StatusBar backgroundColor="#eee" barStyle="dark-content" />
             <User.Provider value={{...user, wallet}}>
-              <App_stack_entry />
+              <App_stack_entry user={user} />
             </User.Provider>
           </Bg_view>
         ) : (

@@ -27,12 +27,37 @@ class Generate_account_number extends React.Component {
       user: user._id,
     });
 
-    this.setState({account_details, requesting: false});
+    if (account_details && !account_details.account_number) {
+      if (
+        account_details.reason &&
+        account_details.reason.include('Invalid payer phone number format')
+      )
+        return this.setState({
+          requesting: false,
+          error_message: account_details.reason,
+        });
+      else {
+        toast(account_details.message);
+        this.setState({
+          requesting: false,
+          error_message: null,
+        });
+      }
+    }
+
+    this.setState({
+      account_details,
+      error_message: !account_details
+        ? 'Unable to generate account details'
+        : null,
+      requesting: false,
+    });
   };
 
   render() {
-    let {navigation} = this.props;
-    let {requesting, account_details} = this.state;
+    let {navigation, route} = this.props;
+    let {user} = route.params;
+    let {requesting, account_details, error_message} = this.state;
 
     return (
       <Bg_view flex>
@@ -49,6 +74,18 @@ class Generate_account_number extends React.Component {
           <Bg_view shadowed style={{borderRadius: wp(4), marginTop: hp(1.4)}}>
             {requesting ? (
               <Loadindicator />
+            ) : error_message ? (
+              <Bg_view style={{padding: wp(4), alignItems: 'center'}}>
+                <Fr_text bold italic>
+                  {error_message}
+                </Fr_text>
+                <Text_btn
+                  text="Update Phone"
+                  bold
+                  accent
+                  action={() => navigation.navigate('update_phone', {user})}
+                />
+              </Bg_view>
             ) : (
               <Bg_view style={{alignItems: 'center', padding: wp(4)}}>
                 <Fr_text size={16}>Account Number</Fr_text>

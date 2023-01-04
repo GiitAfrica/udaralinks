@@ -19,6 +19,8 @@ class Deposit_to_escrow extends React.Component {
   }
 
   deposit = async () => {
+    if (this.state.loading) return;
+
     this.setState({loading: true});
     let {onsale, offer, close_modal} = this.props;
 

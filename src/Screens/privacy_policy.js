@@ -22,7 +22,7 @@ class Privacy_policy extends React.Component {
       <Bg_view flex>
         <Header title="privacy policy" navigation={navigation} />
 
-        <Bg_view style={{margin: wp(4)}}>
+        <Bg_view style={{margin: wp(4), alignItems: 'center'}}>
           <Fr_text centralise size={wp(4.5)}>
             For more information visit -
           </Fr_text>

@@ -9,7 +9,7 @@ class Loadindicator extends React.Component {
   }
 
   render = () => {
-    let {color, style} = this.props;
+    let {color, small, style} = this.props;
 
     return (
       <Bg_view
@@ -22,7 +22,7 @@ class Loadindicator extends React.Component {
         }}>
         <ActivityIndicator
           color={color || '#FF6905'}
-          size={color ? 'small' : 'large'}
+          size={color || small ? 'small' : 'large'}
         />
       </Bg_view>
     );

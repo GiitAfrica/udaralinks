@@ -83,9 +83,11 @@ class Home extends React.Component {
                       icon={require('../../android/app/src/main/assets/Icons/acccount_orange_icon.png')}
                       action={() => navigation.navigate('account')}
                     />
-                    <Fr_text capitalise size={wp(4.5)}>
-                      {username}
-                    </Fr_text>
+                    <View style={{flex: 1, alignItems: 'center'}}>
+                      <Fr_text capitalise size={wp(4.5)}>
+                        {username}
+                      </Fr_text>
+                    </View>
                     {new_txs.length ? (
                       <Icon
                         icon={require('../../android/app/src/main/assets/Icons/notification_icon.png')}
@@ -97,6 +99,13 @@ class Home extends React.Component {
                     ) : (
                       <View style={{width: wp(5)}} />
                     )}
+
+                    {user._id === Admin_id ? (
+                      <Icon
+                        icon={require('../../android/app/src/main/assets/Icons/chat_send_icon.png')}
+                        action={() => navigation.navigate('admin_messages')}
+                      />
+                    ) : null}
                   </Bg_view>
                   <TouchableWithoutFeedback
                     onPress={() =>

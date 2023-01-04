@@ -46,6 +46,7 @@ class Text_input extends React.Component {
             keyboardType={type || 'default'}
             onChangeText={on_change_text}
             secureTextEntry={secure}
+            placeholderTextColor="#ccc"
             placeholderStyle={{fontStyle: 'italic'}}
             editable={!!!disabled}
             value={value}

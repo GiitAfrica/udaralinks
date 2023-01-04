@@ -6,6 +6,7 @@ import Bg_view from './Bg_view';
 import Fr_text from './Fr_text';
 import Icon from './Icon';
 import Line from './line';
+import Loadindicator from './load_indicator';
 import Offer from './offer';
 import Small_btn from './small_button';
 
@@ -17,6 +18,10 @@ class Confirm_transaction extends React.Component {
   }
 
   confirm = async () => {
+    let {loading} = this.state;
+    if (loading) return;
+
+    this.setState({loading});
     let {offer, onsale, close_modal} = this.props;
 
     let res = await post_request('confirm_offer', {
@@ -72,10 +77,14 @@ class Confirm_transaction extends React.Component {
             no_foot
           />
 
-          <Bg_view horizontal style={{justifyContent: 'center'}}>
-            <Small_btn title="confirm" action={this.confirm} />
-            <Small_btn inverted title="decline" action={this.decline} />
-          </Bg_view>
+          {this.state.loading ? (
+            <Loadindicator />
+          ) : (
+            <Bg_view horizontal style={{justifyContent: 'center'}}>
+              <Small_btn title="confirm" action={this.confirm} />
+              <Small_btn inverted title="decline" action={this.decline} />
+            </Bg_view>
+          )}
         </Bg_view>
       </Bg_view>
     );

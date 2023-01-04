@@ -28,7 +28,7 @@ class Bg_view extends React.Component {
     if (accent) style.backgroundColor = '#FF6905';
     if (horizontal) {
       style.flexDirection = 'row';
-      style.alignItems = no_centralise ? null : 'center';
+      if (!no_centralise) style.alignItems = 'center';
     }
     if (background_color) style.backgroundColor = background_color;
     if (no_bg) style.backgroundColor = 'transparent';

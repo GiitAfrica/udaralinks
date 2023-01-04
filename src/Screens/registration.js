@@ -1,11 +1,5 @@
 import React from 'react';
-import {
-  TextInput,
-  KeyboardAvoidingView,
-  ScrollView,
-  TouchableWithoutFeedback,
-  View,
-} from 'react-native';
+import {TextInput, KeyboardAvoidingView, ScrollView, View} from 'react-native';
 import Bg_view from '../Components/Bg_view';
 import Cool_modal from '../Components/cool_modal';
 import Country_codes from '../Components/country_codes';
@@ -13,7 +7,7 @@ import Fr_text from '../Components/Fr_text';
 import Icon from '../Components/Icon';
 import Stretched_button from '../Components/Stretched_button';
 import {hp, wp} from '../utils/dimensions';
-import {phone_regex} from '../utils/functions';
+import {email_regex} from '../utils/functions';
 import {post_request} from '../utils/services';
 import toast from '../utils/toast';
 import {default_country_code} from './Login';
@@ -28,15 +22,15 @@ const set_phone_et_country_code = (phone, country_code) => {
 class Registration extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {country_code: default_country_code};
+    this.state = {country_code: default_country_code, email: ''};
   }
 
-  set_phone = phone => this.setState({phone});
+  set_phone = email => this.setState({email});
 
   request_code = async () => {
-    let {phone, country_code} = this.state;
+    let {email} = this.state;
     return await post_request('request_otp', {
-      phone: set_phone_et_country_code(phone, country_code.code),
+      email,
     });
   };
 
@@ -49,20 +43,19 @@ class Registration extends React.Component {
   get_code = async () => {
     this.setState({loading: true});
     let {navigation} = this.props;
-    let {phone, country_code} = this.state;
+    let {email, country_code} = this.state;
 
     let res = await this.request_code();
+    console.log(res);
     this.setState({loading: false});
 
-    phone = set_phone_et_country_code(phone, country_code.code);
-
-    res === phone
-      ? navigation.navigate('verification', {phone, country_code})
+    res.trim().toLowerCase() === email.trim().toLowerCase()
+      ? navigation.navigate('verification', {email, country_code})
       : toast('Error, something went wrong.');
   };
 
   render = () => {
-    let {country_code, loading, phone} = this.state;
+    let {country_code, loading, email} = this.state;
 
     return (
       <Bg_view flex>
@@ -94,7 +87,7 @@ class Registration extends React.Component {
                   marginTop: hp(4),
                   marginBottom: hp(4),
                 }}>
-                enter your mobile number to receive a verification code
+                enter your email to receive a verification code
               </Fr_text>
               <Bg_view
                 style={{
@@ -120,7 +113,7 @@ class Registration extends React.Component {
                     paddingHorizontal: wp(4),
                     paddingRight: wp(2.8),
                   }}>
-                  <TouchableWithoutFeedback onPress={this.toggle_country_codes}>
+                  {/* <TouchableWithoutFeedback onPress={this.toggle_country_codes}>
                     <View style={{flexDirection: 'row', alignItems: 'center'}}>
                       <Icon
                         icon={country_code.flag}
@@ -135,12 +128,13 @@ class Registration extends React.Component {
                         {country_code.code}
                       </Fr_text>
                     </View>
-                  </TouchableWithoutFeedback>
+                  </TouchableWithoutFeedback> */}
                   <TextInput
-                    placeholder="Phone Number..."
-                    keyboardType="phone-pad"
+                    placeholder="Email Address..."
+                    placeholderTextColor="#ccc"
+                    keyboardType="email-address"
                     onChangeText={this.set_phone}
-                    value={phone}
+                    value={email}
                     style={{
                       flex: 1,
                       fontSize: wp(4.5),
@@ -149,7 +143,7 @@ class Registration extends React.Component {
                       fontWeight: 'bold',
                     }}
                   />
-                  {phone_regex.test(phone) ? (
+                  {email_regex.test(email) ? (
                     <Icon
                       icon={require('../assets/Icons/valid.png')}
                       style={{height: wp(7.5), width: wp(7.5)}}

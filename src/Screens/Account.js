@@ -154,18 +154,33 @@ class Account extends React.Component {
             action: () =>
               this.props.navigation.navigate('disputes', {user: this.user}),
           }
-        : {
-            title: 'phone number',
-            value: this.user.phone,
-            action: loading
-              ? null
-              : () => navigation.navigate('update_phone', {user: this.user}),
-            right_btn: this.user.verified ? null : loading ? (
-              <Loadindicator style={{minHeight: null}} />
-            ) : (
-              <Text_btn accent text="verify" action={this.verify} />
-            ),
-          },
+        : null,
+      Admin_id === this.user._id
+        ? {
+            title: 'verification requests',
+            action: () => navigation.navigate('verification_requests'),
+          }
+        : null,
+      {
+        title: 'Email Address',
+        value: this.user.email,
+        action: loading
+          ? null
+          : () => navigation.navigate('update_email', {user: this.user}) /* ,
+        right_btn: this.user.verified ? null : loading ? (
+          <Loadindicator style={{minHeight: null}} />
+        ) : (
+          <Text_btn accent text="verify" action={this.verify} />
+        ), */,
+      },
+      {
+        title: 'Change Password',
+        value: 'Make your account secure',
+        action: () =>
+          navigation.navigate('change_password', {
+            user: this.user._id,
+          }),
+      },
       {
         title: 'privacy policy',
         no_bg: true,
@@ -236,15 +251,30 @@ class Account extends React.Component {
                         }),
                     })}
                     {this.touch_card({
-                      main: 'change password',
-                      text: 'make your profile secure',
+                      main:
+                        user.status === 'verified'
+                          ? 'Verified !'
+                          : user.status === 'pending'
+                          ? 'Verification Pending'
+                          : 'Get Verified',
+                      text: user.status
+                        ? 'Verification Details'
+                        : 'To transact w/o restriction.',
                       action: () =>
-                        navigation.navigate('change_password', {
-                          user: user._id,
-                        }),
+                        navigation.navigate(
+                          user.status
+                            ? 'verification_details'
+                            : 'account_verification',
+                          {
+                            user: user._id,
+                            status: user.status,
+                          },
+                        ),
                     })}
                   </Bg_view>
-                  {this.settings().map(setting => this.setting_item(setting))}
+                  {this.settings().map(
+                    setting => setting && this.setting_item(setting),
+                  )}
 
                   <Cool_modal
                     ref={fav_currency_modal =>

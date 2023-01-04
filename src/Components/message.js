@@ -37,7 +37,7 @@ class Message extends React.Component {
   };
 
   render() {
-    let {message, loggeduser, navigation, onsale} = this.props;
+    let {message, loggeduser, centralise, navigation, onsale} = this.props;
     let {text, from, created, attachment, attachment_meta} = message;
     if (!attachment) attachment = new Array();
 
@@ -49,12 +49,15 @@ class Message extends React.Component {
         attachment[0]._id?.startsWith('offer'),
       is_image_attached;
 
-    if (!is_offer_attached) is_image_attached = attachment && attachment[0];
+    if (!is_offer_attached) {
+      is_image_attached = attachment && attachment[0];
+      if (centralise) is_offer_attached = centralise;
+    }
 
     return (
       <Bg_view
         style={{
-          backgroundColor: is_offer_attached ? null : '#eee',
+          backgroundColor: is_offer_attached && !centralise ? null : '#eee',
           borderRadius: wp(2.8),
           minWidth: wp(20),
           maxWidth: is_offer_attached ? null : wp(80),
@@ -67,12 +70,12 @@ class Message extends React.Component {
           marginBottom: hp(1.4),
           marginRight: wp(1.4),
         }}>
-        {is_offer_attached ? (
+        {is_offer_attached && !centralise ? (
           <Offer
             user={loggeduser}
             onsale={onsale}
             navigation={navigation}
-            status={attachment_meta.status}
+            status={attachment_meta?.status}
             offer={attachment[0]}
           />
         ) : (

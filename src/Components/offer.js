@@ -1,11 +1,11 @@
 import React from 'react';
 import {TouchableWithoutFeedback, View} from 'react-native';
-import {hp, wp} from '../utils/dimensions';
+import {wp} from '../utils/dimensions';
 import Bg_view from './Bg_view';
 import Fr_text from './Fr_text';
 import Icon from './Icon';
 import Small_btn from './small_button';
-import {emitter, Sock_offer_status} from './../../Udara';
+import {Admin_id, emitter, Sock_offer_status} from './../../Udara';
 import {post_request} from '../utils/services';
 import Text_btn from './Text_btn';
 import Cool_modal from './cool_modal';
@@ -13,6 +13,9 @@ import Deposit_to_escrow from './deposit_to_escrow';
 import Fulfil from './fulfil';
 import Confirm_transaction from './confirm_transaction';
 import Countdown from './countdown';
+import Bank_transfer from './bank_transfer';
+import Online_registration from './online_registration';
+import Message from './message';
 
 class Offer extends React.Component {
   constructor(props) {
@@ -142,7 +145,9 @@ class Offer extends React.Component {
   };
 
   accept = async () => {
+    if (this.state.loading) return;
     let {offer, onsale} = this.props;
+    this.setState({loading: true});
 
     let res = await post_request('accept_offer', {
       offer: offer._id,
@@ -150,11 +155,13 @@ class Offer extends React.Component {
     });
     emitter.emit('offer_accepted', offer._id);
     Sock_offer_status(offer._id, 'accepted', offer.user?._id);
-    res && this.setState({status: 'accepted'});
+    res && this.setState({status: 'accepted', loading: false});
   };
 
   decline = async () => {
+    if (this.state.loading) return;
     let {offer, onsale} = this.props;
+    this.setState({loading: true});
 
     let res = await post_request('decline_offer', {
       offer: offer._id,
@@ -162,7 +169,7 @@ class Offer extends React.Component {
     });
     emitter.emit('offer_declined', offer._id);
     Sock_offer_status(offer._id, 'declined', offer.user?._id);
-    res && this.setState({status: 'declined'});
+    res && this.setState({status: 'declined', loading: false});
   };
 
   remove_offer = async () => {
@@ -183,10 +190,14 @@ class Offer extends React.Component {
   };
 
   go_to_chat = () => {
-    let {onsale, offer, navigation} = this.props;
+    let {onsale, offer, message, navigation} = this.props;
     offer.status = this.state.status || offer.status;
 
-    navigation.navigate('chat', {onsale, offer});
+    let params = {onsale, offer};
+    if (message)
+      params.user = message.to === Admin_id ? message.from : message.to;
+
+    navigation.navigate('chat', params);
   };
 
   dispute = () => {
@@ -199,7 +210,6 @@ class Offer extends React.Component {
 
   render = () => {
     let {
-      show_btns,
       status: status_,
       new_messages,
       timestamp,
@@ -215,16 +225,19 @@ class Offer extends React.Component {
       onsale,
       status: status__,
       admin_in_dispute,
+      message,
       navigation,
     } = this.props;
     let {flag, seller, currency} = onsale;
-    let {amount, status, offer_rate} = offer;
+    let {amount, status, offer_need, offer_rate} = offer;
     if (status_) status = status_;
     new_messages = new_messages || '';
 
     let disputable = timestamp + this.aday < Date.now();
 
     if (admin_in_dispute && status === 'closed') return null;
+
+    let is_seller = seller._id === user._id;
 
     return (
       <TouchableWithoutFeedback onPress={this.toggle_offer_buttons}>
@@ -259,7 +272,6 @@ class Offer extends React.Component {
                 </Fr_text>
               </Bg_view>
             </Bg_view>
-
             {no_foot ? null : status === 'in-dispute' ? (
               <Text_btn
                 text="in-dispute"
@@ -268,20 +280,32 @@ class Offer extends React.Component {
                 accent
                 action={this.dispute}
               />
-            ) : status__ && status__ !== status ? null : show_btns ? (
-              <Bg_view style={{alignItems: 'center'}}>
+            ) : status__ && status__ !== status ? null : (
+              <Bg_view
+                style={{
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                }}>
                 {user._id !== seller._id /* loggeduser is buyer */ ? (
-                  <Bg_view horizontal style={{justifyContent: 'center'}}>
+                  <Bg_view
+                    horizontal
+                    style={{
+                      justifyContent: 'center',
+                      alignItems: 'space-between',
+                      flexWrap: 'wrap',
+                    }}>
                     {status === 'declined' || status__ ? null : (
-                      <Icon
+                      <Text_btn
                         icon={require('../../android/app/src/main/assets/Icons/chat_send_icon.png')}
                         action={this.go_to_chat}
-                        text={<Fr_text>{` ${new_messages}`}</Fr_text>}
-                        style={{height: wp(7.5), width: wp(7.5)}}
+                        text={
+                          user._id === Admin_id ? 'Respond' : `Contact Admin`
+                        }
+                        accent
                       />
                     )}
                     {status === 'accepted' ? (
-                      <Bg_view horizontal>
+                      <Bg_view horizontal style={{flexWrap: 'wrap'}}>
                         <Text_btn
                           text="deposit"
                           action={
@@ -294,7 +318,7 @@ class Offer extends React.Component {
                       </Bg_view>
                     ) : status === 'in-escrow' ? (
                       disputable && !requested_time ? (
-                        <Bg_view horizontal>
+                        <Bg_view horizontal style={{flexWrap: 'wrap'}}>
                           <Text_btn
                             text="extend time"
                             action={this.extend_time}
@@ -303,6 +327,7 @@ class Offer extends React.Component {
                             style={{
                               borderRightWidth: 1,
                               borderRightColor: '#ccc',
+                              flexWrap: 'wrap',
                             }}
                           />
                           <Text_btn
@@ -352,17 +377,17 @@ class Offer extends React.Component {
                     )}
                   </Bg_view>
                 ) : (
-                  /* loggeduser is seller */ <Bg_view horizontal>
+                  /* loggeduser is seller */ <Bg_view
+                    horizontal
+                    style={{justifyContent: 'center', alignItems: 'center'}}>
                     {status === 'declined' ? null : !status__ ? (
-                      <Icon
+                      <Text_btn
                         icon={require('../../android/app/src/main/assets/Icons/chat_send_icon.png')}
                         action={this.go_to_chat}
+                        accent
                         text={
-                          <Fr_text italic bold style={{marginLeft: wp(1.4)}}>
-                            {new_messages}
-                          </Fr_text>
+                          user._id === Admin_id ? 'Respond' : `Contact Admin`
                         }
-                        style={{height: wp(7.5), width: wp(7.5)}}
                       />
                     ) : null}
                     {status === 'declined' ? null : status ===
@@ -390,7 +415,7 @@ class Offer extends React.Component {
                       )
                     ) : status === 'awaiting confirmation' ? (
                       disputable && !requested_time ? (
-                        <Bg_view horizontal>
+                        <Bg_view horizontal style={{flexWrap: 'wrap'}}>
                           <Text_btn
                             text="extend time"
                             action={this.extend_time}
@@ -414,23 +439,22 @@ class Offer extends React.Component {
                           timestamp={timestamp + this.aday}
                         />
                       )
-                    ) : status === 'completed' ? null : (
-                      <Small_btn title="accept" action={this.accept} />
-                    )}
-                    {status === 'pending' ? (
-                      <Small_btn
-                        inverted
-                        title="decline"
-                        action={this.decline}
-                      />
-                    ) : status === 'declined' ? (
+                    ) : status === 'completed' ? null : null}
+                    {status === 'declined' ? (
                       <Text_btn text="Declined!" />
                     ) : null}
                   </Bg_view>
                 )}
               </Bg_view>
+            )}
+            {status === 'pending' && user._id === seller._id ? (
+              <Bg_view horizontal style={{justifyContent: 'center'}}>
+                <Small_btn title="accept" action={this.accept} />
+                {status === 'pending' ? (
+                  <Small_btn inverted title="decline" action={this.decline} />
+                ) : null}
+              </Bg_view>
             ) : null}
-
             {seller._id === user._id &&
             status === 'in-escrow' ? null : seller._id !== user._id &&
               status === 'awaiting confirmation' ? null : requested_time &&
@@ -456,6 +480,32 @@ class Offer extends React.Component {
                 </Bg_view>
               </Bg_view>
             ) : null}
+
+            {status === 'accepted' && user._id === seller._id ? (
+              <Fr_text centralise italic>
+                Awaiting buyer to make deposit into escrow before proceeding
+                with transaction.
+              </Fr_text>
+            ) : null}
+
+            <Bg_view>
+              {message ? (
+                <Message
+                  message={message}
+                  loggeduser={user}
+                  navigation={navigation}
+                  onsale={onsale}
+                  centralise
+                />
+              ) : offer_need.need === 'bank transfer' ? (
+                <Bank_transfer
+                  bank_transfer={offer_need}
+                  is_seller={is_seller}
+                />
+              ) : (
+                <Online_registration reg={offer_need} is_seller={is_seller} />
+              )}
+            </Bg_view>
           </Bg_view>
           <Cool_modal
             ref={cool_modal_deposit =>

@@ -1,6 +1,13 @@
 import React from 'react';
-import {FlatList, Image, KeyboardAvoidingView, TextInput} from 'react-native';
-import {emitter, Sock_offer_status, User} from '../../Udara';
+import {
+  FlatList,
+  Image,
+  KeyboardAvoidingView,
+  TextInput,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
+import {Admin_id, emitter, Sock_offer_status, User} from '../../Udara';
 import Bg_view from '../Components/Bg_view';
 import Fr_text from '../Components/Fr_text';
 import Header from '../Components/header';
@@ -21,8 +28,9 @@ import Fulfil from '../Components/fulfil';
 import Confirm_transaction from '../Components/confirm_transaction';
 import Countdown from '../Components/countdown';
 import RNFS from 'react-native-fs';
-
-let doc_dir = RNFS.DocumentDirectoryPath;
+import Verified_token from './verifed_token';
+import Bank_transfer from '../Components/bank_transfer';
+import Online_registration from '../Components/online_registration';
 
 class Chat extends React.Component {
   constructor(props) {
@@ -39,10 +47,11 @@ class Chat extends React.Component {
 
   componentDidMount = async () => {
     let {route} = this.props;
-    let {onsale, offer} = route.params;
+    let {onsale, user, offer} = route.params;
     let chat = await post_request('chat', {
         onsale: onsale._id,
         offer: offer._id,
+        user: this.loggeduser._id === Admin_id ? user : this.loggeduser._id,
       }),
       messages;
 
@@ -229,13 +238,13 @@ class Chat extends React.Component {
     if (file_base64) attachment = new Array(file_base64);
 
     if (!chat) {
+      this.other_person =
+        this.loggeduser._id !== Admin_id ? Admin_id : this.loggeduser._id;
+
       chat = {
         offer: offer._id,
         from: this.loggeduser._id,
-        to:
-          this.loggeduser._id === onsale.seller._id
-            ? offer.user._id
-            : onsale.seller._id,
+        to: this.other_person,
       };
       let res = await post_request('new_chat', chat);
       if (!res || (res && !res._id)) {
@@ -246,8 +255,6 @@ class Chat extends React.Component {
       chat.updated = res.updated;
       chat.created = res.created;
 
-      this.other_person =
-        chat.from === this.loggeduser._id ? chat.to : chat.from;
       this.setState({chat});
     }
     let message = {
@@ -255,11 +262,9 @@ class Chat extends React.Component {
       chat: chat._id,
       offer: offer._id,
       onsale: onsale._id,
+      currency: onsale.currency,
       from: this.loggeduser._id,
-      to:
-        this.loggeduser._id === onsale.seller._id
-          ? offer.user._id
-          : onsale.seller._id,
+      to: chat.to === this.loggeduser._id ? chat.from : chat.to,
       attachment,
       files: null,
       file_base64: null,
@@ -326,7 +331,9 @@ class Chat extends React.Component {
   };
 
   accept = async () => {
+    if (this.state.loading) return;
     let {offer, onsale} = this.props.route.params;
+    this.setState({loading: true});
 
     let res = await post_request('accept_offer', {
       offer: offer._id,
@@ -334,11 +341,13 @@ class Chat extends React.Component {
     });
     emitter.emit('offer_accepted', offer._id);
     Sock_offer_status(offer._id, 'accepted', offer.user?._id);
-    res && this.setState({status: 'accepted'});
+    res && this.setState({status: 'accepted', loading: false});
   };
 
   decline = async () => {
+    if (this.state.loading) return;
     let {offer, onsale} = this.props.route.params;
+    this.setState({loading: true});
 
     let res = await post_request('decline_offer', {
       offer: offer._id,
@@ -346,7 +355,7 @@ class Chat extends React.Component {
     });
     emitter.emit('offer_declined', offer._id);
     Sock_offer_status(offer._id, 'declined', offer.user?._id);
-    res && this.setState({status: 'declined'});
+    res && this.setState({status: 'declined', loading: false});
   };
 
   on_blur = () => {
@@ -384,15 +393,27 @@ class Chat extends React.Component {
     });
   };
 
+  admin_chat_switch = user => {
+    let {navigation, route} = this.props;
+    let {onsale, offer} = route.params;
+
+    navigation.push('chat', {onsale, offer, user});
+  };
+
   render_chat_offer = () => {
-    let {timestamp, requested_time, status: status_} = this.state;
+    let {timestamp, chat, requested_time, status: status_} = this.state;
     let {route} = this.props;
     let {onsale, offer} = route.params;
-    let {amount, offer_rate, status, user} = offer;
+    let {amount, offer_rate, status, offer_need, user} = offer;
     let {seller, alphabetic_name} = onsale;
     if (status_) status = status_;
 
     let disputable = timestamp + this.aday < Date.now();
+    let is_seller = this.loggeduser._id == seller._id;
+    let is_seller_chat =
+      this.loggeduser._id !== Admin_id ||
+      (chat && chat.to === seller._id) ||
+      (chat && chat.from === seller._id);
 
     return (
       <Bg_view
@@ -413,24 +434,64 @@ class Chat extends React.Component {
                 backgroundColor: '#ddd',
               }}
             />
-            <Fr_text size={wp(3.8)} style={{marginLeft: wp(1.4)}} capitalise>
-              {seller.username}
-            </Fr_text>
+            <TouchableWithoutFeedback
+              onPress={
+                !is_seller_chat ? () => this.admin_chat_switch(user._id) : null
+              }>
+              <View>
+                <Bg_view horizontal>
+                  <Fr_text
+                    size={wp(3.8)}
+                    style={{marginLeft: wp(1.4)}}
+                    capitalise>
+                    {seller.username}
+                  </Fr_text>
+                  {seller.status === 'verified' ? <Verified_token /> : null}
+
+                  {!is_seller_chat ? (
+                    <Icon
+                      style={{paddingLeft: wp(2)}}
+                      icon={require('../../android/app/src/main/assets/Icons/chat_send_icon.png')}
+                    />
+                  ) : null}
+                </Bg_view>
+              </View>
+            </TouchableWithoutFeedback>
           </Bg_view>
-          <Bg_view horizontal>
-            <Fr_text size={wp(3.8)} style={{marginRight: wp(1.4)}} capitalise>
-              {user.username}
-            </Fr_text>
-            <Bg_view
-              style={{
-                height: wp(7.5),
-                width: wp(7.5),
-                borderRadius: wp(7.5),
-                backgroundColor: '#ddd',
-              }}
-            />
-          </Bg_view>
+          <TouchableWithoutFeedback
+            onPress={
+              is_seller_chat ? () => this.admin_chat_switch(seller._id) : null
+            }>
+            <View>
+              <Bg_view horizontal>
+                {is_seller_chat ? (
+                  <Icon
+                    style={{paddingRight: wp(2)}}
+                    icon={require('../../android/app/src/main/assets/Icons/chat_send_icon.png')}
+                  />
+                ) : null}
+                <Bg_view horizontal>
+                  {user.status === 'verified' ? <Verified_token /> : null}
+                  <Fr_text
+                    size={wp(3.8)}
+                    style={{marginRight: wp(1.4), marginLeft: wp(1.4)}}
+                    capitalise>
+                    {user.username}
+                  </Fr_text>
+                </Bg_view>
+                <Bg_view
+                  style={{
+                    height: wp(7.5),
+                    width: wp(7.5),
+                    borderRadius: wp(7.5),
+                    backgroundColor: '#ddd',
+                  }}
+                />
+              </Bg_view>
+            </View>
+          </TouchableWithoutFeedback>
         </Bg_view>
+
         <Bg_view
           horizontal
           style={{
@@ -465,8 +526,8 @@ class Chat extends React.Component {
           />
         ) : this.loggeduser._id === seller._id ? (
           <Bg_view horizontal style={{justifyContent: 'space-between'}}>
-            <Bg_view flex />
-            <Bg_view horizontal style={{justifyContent: 'center'}} flex>
+            {/* <Bg_view flex /> */}
+            <Bg_view horizontal style={{alignItems: 'center'}} flex>
               {status === 'in-escrow' ? (
                 disputable ? (
                   <Text_btn
@@ -531,16 +592,19 @@ class Chat extends React.Component {
                 />
               ) : null}
             </Bg_view>
-            <Text_btn
-              style={{
-                flex: 1,
-                alignItems: 'flex-end',
-              }}
-              text={status}
-              capitalise
-              italic
-              accent
-            />
+            <Bg_view style={{alignItems: 'flex-end'}}>
+              <Text_btn
+                style={{
+                  flex: 1,
+                  alignItems: 'flex-end',
+                  marginLeft: wp(4),
+                }}
+                text={status}
+                capitalise
+                italic
+                accent
+              />
+            </Bg_view>
           </Bg_view>
         ) : (
           <Bg_view horizontal style={{justifyContent: 'space-between'}}>
@@ -610,7 +674,7 @@ class Chat extends React.Component {
               ) : null}
             </Bg_view>
             <Text_btn
-              style={{flex: 1, alignItems: 'flex-end'}}
+              style={{flex: 1, alignItems: 'flex-end', marginLeft: wp(4)}}
               text={status}
               capitalise
               italic
@@ -644,6 +708,14 @@ class Chat extends React.Component {
             </Bg_view>
           </Bg_view>
         ) : null}
+
+        <Bg_view>
+          {offer_need.need === 'bank transfer' ? (
+            <Bank_transfer bank_transfer={offer_need} is_seller={is_seller} />
+          ) : (
+            <Online_registration reg={offer_need} is_seller={is_seller} />
+          )}
+        </Bg_view>
       </Bg_view>
     );
   };
@@ -762,7 +834,7 @@ class Chat extends React.Component {
                         flex: 1,
                       }}>
                       <TextInput
-                        placeholder="Enter message"
+                        placeholder="Message admin for help."
                         multiline
                         onBlur={this.on_blur}
                         onFocus={this.on_focus}

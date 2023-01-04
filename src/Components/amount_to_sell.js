@@ -1,11 +1,13 @@
 import React from 'react';
 import {TextInput, TouchableNativeFeedback, View} from 'react-native';
+import {Admin_id} from '../../Udara';
 import {hp, wp} from '../utils/dimensions';
 import Bg_view from './Bg_view';
 import Cool_modal from './cool_modal';
 import Currencies from './currencies';
 import Fr_text from './Fr_text';
 import Stretched_button from './Stretched_button';
+import Text_btn from './Text_btn';
 
 class Amount_to_sell extends React.Component {
   constructor(props) {
@@ -57,6 +59,7 @@ class Amount_to_sell extends React.Component {
     navigation.navigate('sell', {
       value: String(value),
       rate,
+      user,
       currency,
       wallet: user.wallet,
       currency_full,
@@ -64,6 +67,7 @@ class Amount_to_sell extends React.Component {
   };
 
   render = () => {
+    let {user, navigation} = this.props;
     let {rate, value, currency_full} = this.state;
 
     return (
@@ -151,10 +155,33 @@ class Amount_to_sell extends React.Component {
         </Bg_view>
 
         <Stretched_button
-          disabled={!value || Number(value) <= 0 || !rate || Number(rate) <= 0}
+          disabled={
+            !value ||
+            Number(value) <= 0 ||
+            !rate ||
+            Number(rate) <= 0 ||
+            (value > 500 && user.status !== 'verified')
+          }
           title="continue"
           action={this.sell}
         />
+
+        {value > 500 && user.status !== 'verified' && user._id !== Admin_id ? (
+          <Bg_view style={{alignItems: 'center'}}>
+            <Fr_text italic centralise color="red">
+              Transactions have limited value as an unverified user account.
+            </Fr_text>
+
+            <Text_btn
+              bold
+              capitalise
+              text="verify account"
+              action={() =>
+                navigation.navigate('account_verification', {user: user._id})
+              }
+            />
+          </Bg_view>
+        ) : null}
 
         <Cool_modal ref={cool_modal => (this.cool_modal = cool_modal)}>
           <Currencies

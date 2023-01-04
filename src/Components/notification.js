@@ -3,6 +3,7 @@ import {hp, wp} from '../utils/dimensions';
 import Bg_view from './Bg_view';
 import Fr_text from './Fr_text';
 import Line from './line';
+import Offer from './offer';
 
 class Notification extends React.Component {
   constructor(props) {
@@ -26,6 +27,21 @@ class Notification extends React.Component {
     11: 'DEC',
   };
 
+  render_data = () => {
+    let {notification, user, navigation} = this.props;
+    let {data} = notification;
+
+    return (
+      <Offer
+        offer={data.find(d => d && d._id && d._id.startsWith('offer'))}
+        onsale={data.find(d => d && d._id && d._id.startsWith('onsale'))}
+        message={data.find(d => d && d._id && d._id.startsWith('message'))}
+        navigation={navigation}
+        user={user}
+      />
+    );
+  };
+
   format_timestamp = timestamp => {
     let date = new Date(timestamp);
 
@@ -37,8 +53,8 @@ class Notification extends React.Component {
   };
 
   render = () => {
-    let {notification, navigation} = this.props;
-    let {title, message, created} = notification;
+    let {notification} = this.props;
+    let {title, created} = notification;
 
     return (
       <Bg_view
@@ -50,12 +66,16 @@ class Notification extends React.Component {
         <Bg_view
           horizontal
           style={{justifyContent: 'space-between', marginBottom: hp(1)}}>
-          <Fr_text bold>{title}</Fr_text>
+          <Fr_text bold capitalise>
+            {title}
+          </Fr_text>
           <Fr_text size={wp(3)} color="#999">
             {this.format_timestamp(created)}
           </Fr_text>
         </Bg_view>
-        <Fr_text color="#999">{message}</Fr_text>
+        {this.render_data()}
+
+        <Line />
       </Bg_view>
     );
   };

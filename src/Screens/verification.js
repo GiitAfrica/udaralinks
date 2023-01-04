@@ -4,10 +4,8 @@ import {emitter} from '../../Udara';
 import Bg_view from '../Components/Bg_view';
 import Fr_text from '../Components/Fr_text';
 import Icon from '../Components/Icon';
-import Loadindicator from '../Components/load_indicator';
 import Otp_counter from '../Components/otp_counter';
 import Stretched_button from '../Components/Stretched_button';
-import Text_btn from '../Components/Text_btn';
 import {hp, wp} from '../utils/dimensions';
 import {post_request} from '../utils/services';
 import toast from '../utils/toast';
@@ -19,62 +17,55 @@ class Verification extends React.Component {
   }
 
   resend_otp = async () => {
-    let {phone} = this.props.route.params;
-    return await post_request('request_otp', {phone});
+    let {email} = this.props.route.params;
+    return await post_request('request_otp', {email});
   };
 
   set_code = code =>
     this.setState({
       code: code.trim(),
-      valid_code: /^[0-9]{4}$/.test(String(code)),
+      valid_code: /^[0-9]{6}$/.test(String(code)),
     });
 
   verify_later = () => this.setState({verify_later: true}, this.verify);
 
-  phone_update = async () => {
-    this.setState({
-      doing_later: !!this.state.verify_later,
-      loading: !this.state.verify_later,
-    });
+  email_update = async () => {
+    this.setState({loading: true});
     let {navigation, route} = this.props;
-    let {phone, user, country, country_code} = route.params;
-    let {code, verify_later} = this.state;
-    if (typeof country_code !== 'object')
-      country_code = {code: country_code, country};
+    let {email, user, country_code} = route.params;
+    let {code} = this.state;
 
-    let response = await post_request('update_phone', {
-      phone,
-      verify_later,
-      code: Number(code),
+    let response = await post_request('update_email', {
+      email,
+      code,
+      country: country_code.country,
+      code: country_code.code,
       user,
-      country_code,
     });
-    console.log(response, 'response here');
     if (response === user) {
-      emitter.emit('update_phone', {phone, verify_later, country_code});
+      emitter.emit('update_email', {email, country_code});
       navigation.pop();
       navigation.navigate('account');
     } else {
       toast("Err, couldn't conclude request.");
-      this.setState({doing_later: false, loading: false, verify_later: false});
+      this.setState({loading: false});
     }
   };
 
   verify = async () => {
     let {navigation, route} = this.props;
-    let {phone, from_update, country_code} = route.params;
+    let {email, from_update, country_code} = route.params;
 
-    if (from_update) return this.phone_update();
+    if (from_update) return this.email_update();
 
     this.setState({loading: true});
-    let {code, verify_later} = this.state;
+    let {code} = this.state;
 
     let verified = await post_request('verify_otp', {
-      phone,
+      email,
       country: country_code.country,
       country_code: country_code.code,
-      code: Number(code),
-      verify_later,
+      code,
     });
 
     this.setState({loading: false});
@@ -82,7 +73,7 @@ class Verification extends React.Component {
       emitter.emit('verified', {...verified, country_code});
       navigation.pop();
       navigation.navigate('congratulation', {
-        phone,
+        email,
         user: verified.user._id,
         country_code,
       });
@@ -94,9 +85,7 @@ class Verification extends React.Component {
 
   render = () => {
     let {valid_code, code, loading, doing_later} = this.state;
-    let {phone} = this.props.route.params;
-    let str_phone = String(phone);
-    let last_four_digit = str_phone.slice(str_phone.length - 4);
+    let {email} = this.props.route.params;
 
     return (
       <Bg_view flex>
@@ -122,7 +111,7 @@ class Verification extends React.Component {
                   marginTop: hp(1.4),
                   marginBottom: hp(2.8),
                 }}>
-                {`enter the 4 digit number that was sent to ****${last_four_digit}`}
+                {`enter the 6 digit number that was sent to ${email}`}
               </Fr_text>
               <Bg_view
                 style={{
@@ -148,8 +137,9 @@ class Verification extends React.Component {
                     paddingRight: wp(2.8),
                   }}>
                   <TextInput
-                    placeholder="_ _ _ _"
-                    keyboardType="phone-pad"
+                    placeholder="_ _ _ _ _ _"
+                    keyboardType="email-pad"
+                    placeholderTextColor="#ccc"
                     onChangeText={this.set_code}
                     value={String(code)}
                     style={{
@@ -175,18 +165,6 @@ class Verification extends React.Component {
                   style={{marginHorizontal: 0, marginTop: hp(4)}}
                   action={this.verify}
                 />
-
-                <Bg_view style={{alignItems: 'center'}}>
-                  {doing_later ? (
-                    <Loadindicator style={{minHeight: null}} />
-                  ) : (
-                    <Text_btn
-                      disabled={loading}
-                      text="Do this later"
-                      action={this.verify_later}
-                    />
-                  )}
-                </Bg_view>
               </Bg_view>
               {doing_later ? null : (
                 <Otp_counter resend_otp={this.resend_otp} />

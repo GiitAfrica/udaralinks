@@ -1,18 +1,21 @@
 import React from 'react';
 import {FlatList, ScrollView, TextInput, View} from 'react-native';
+import {Admin_id} from '../../Udara';
 import Bg_view from '../Components/Bg_view';
+import Cool_modal from '../Components/cool_modal';
 import Fr_text from '../Components/Fr_text';
 import Header from '../Components/header';
 import Icon from '../Components/Icon';
 import Line from '../Components/line';
 import Loadindicator from '../Components/load_indicator';
 import Offer from '../Components/offer';
+import Send_offer from '../Components/send_offer';
 import Stretched_button from '../Components/Stretched_button';
 import {hp, wp} from '../utils/dimensions';
 import {capitalise} from '../utils/functions';
 import {post_request} from '../utils/services';
 import toast from '../utils/toast';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import Verified_token from './verifed_token';
 
 class Onsale_details extends React.Component {
   constructor(props) {
@@ -29,9 +32,6 @@ class Onsale_details extends React.Component {
     let {onsale, user} = this.props.route.params;
     this._onsale = onsale;
     let {my_offers} = this.state;
-
-    let buy_filter = await AsyncStorage.getItem('buy_filter');
-    buy_filter && this.setState({buy_filter: JSON.parse(buy_filter)});
 
     my_offers =
       (await post_request('my_offers', {onsale: onsale._id, user: user._id})) ||
@@ -56,10 +56,13 @@ class Onsale_details extends React.Component {
 
   set_rate = offer_rate => this.setState({offer_rate});
 
-  send_offer = async () => {
+  send_offer = async offer_need => {
     let {route} = this.props;
     let {onsale, user} = route.params;
-    let {amount} = this.state;
+    let {amount, sending_offer} = this.state;
+
+    if (sending_offer) return;
+    this.setState({sending_offer: true});
 
     let offer = {
       amount: Number(amount),
@@ -68,17 +71,24 @@ class Onsale_details extends React.Component {
       onsale: onsale._id,
       seller: onsale.seller._id,
       currency: onsale.currency,
+      offer_need: offer_need._id,
     };
     let res = await post_request('make_offer', offer);
+    res.offer_need = offer_need;
     if (res) {
       let {my_offers} = this.state;
       my_offers = new Array(res, ...my_offers);
-      this.setState({my_offers, amount: 0});
-    } else toast("Couldn't place offer at this time.");
+      this.setState({my_offers, amount: 0, sending_offer: false});
+    } else {
+      toast("Couldn't place offer at this time.");
+      this.setState({sending_offer: false});
+    }
   };
 
+  toggle_send_offer = () => this.send_offer_modal?.toggle();
+
   render() {
-    let {amount, my_offers, buy_filter} = this.state;
+    let {amount, sending_offer, my_offers} = this.state;
     let {route, navigation} = this.props;
     let {onsale, user} = route.params;
 
@@ -152,8 +162,12 @@ class Onsale_details extends React.Component {
               </View>
             </Bg_view>
 
-            {amount && amount > 0 && buy_filter ? (
-              <Stretched_button title="send offer" action={this.send_offer} />
+            {amount && amount > 0 ? (
+              <Stretched_button
+                loading={sending_offer}
+                title="proceed"
+                action={this.toggle_send_offer || this.send_offer}
+              />
             ) : null}
 
             <Line />
@@ -214,9 +228,7 @@ class Onsale_details extends React.Component {
                 opacity={0.8}
                 italic
                 size={wp(3.5)}
-                style={{textAlign: 'right', margin: wp(2.8)}}>
-                Udara fee - 0.5%
-              </Fr_text>
+                style={{textAlign: 'right', margin: wp(2.8)}}></Fr_text>
             </Bg_view>
             <Bg_view horizontal>
               <Bg_view
@@ -229,16 +241,39 @@ class Onsale_details extends React.Component {
                 }}
               />
               <Bg_view>
-                <Fr_text>{seller.username}</Fr_text>
-                <Fr_text size={wp(3.5)} italic>
-                  {seller.phone}
-                </Fr_text>
+                <Bg_view horizontal>
+                  <Fr_text>{seller.username}</Fr_text>
+                  {seller.status === 'verified' ? <Verified_token /> : null}
+                </Bg_view>
+                <Bg_view horizontal style={{justifyContent: 'space-between'}}>
+                  <Fr_text size={wp(3.5)} italic>
+                    {seller.email}
+                  </Fr_text>
+                  {user._id === Admin_id ? (
+                    <Fr_text size={wp(3.5)} italic>
+                      {seller.phone}
+                    </Fr_text>
+                  ) : null}
+                </Bg_view>
               </Bg_view>
             </Bg_view>
           </Bg_view>
 
           <Bg_view style={{height: hp(10)}} />
         </ScrollView>
+
+        <Cool_modal
+          center
+          ref={send_offer_modal => (this.send_offer_modal = send_offer_modal)}>
+          <Send_offer
+            user={user}
+            onsale={onsale}
+            navigation={navigation}
+            toggle={this.toggle_send_offer}
+            send_offer={this.send_offer}
+            amount={amount}
+          />
+        </Cool_modal>
       </Bg_view>
     );
   }

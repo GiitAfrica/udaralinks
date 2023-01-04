@@ -1,4 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import React from 'react';
 import {ScrollView} from 'react-native';
 import {User} from '../../Udara';
@@ -15,61 +14,78 @@ import Loadindicator from '../Components/load_indicator';
 import Onsale_currency from '../Components/onsale_currency';
 import Search_input from '../Components/search_input';
 import Small_btn from '../Components/small_button';
+import Text_btn from '../Components/Text_btn';
 import {filter} from '../Components/transactions';
 import {hp, wp} from '../utils/dimensions';
+import {capitalise} from '../utils/functions';
 import {post_request} from '../utils/services';
-import toast from '../utils/toast';
+
+let currencies_alignment = new Array(
+  'dollar',
+  'pound',
+  'euro',
+  'canadian dollar',
+);
 
 class Market extends React.Component {
   constructor(props) {
     super(props);
 
     let {route} = this.props;
-    let {buy_filter} = route?.params || {};
+    let {currency} = route?.params || {};
     this.state = {
-      buy_filter,
+      currency: (currency && currency.name) || 'dollar',
+      page: 0,
+      page_size: 25,
     };
   }
 
-  set_buy_filter = buy_filter =>
-    this.setState({buy_filter}, this.fetch_currencies);
-
-  fetch_currencies = async refreshing => {
+  fetch_currencies = async (refreshing, mount) => {
     if (refreshing) {
-      toast('Refreshing...');
-      this.onsales = this.state.onsales;
       this.setState({onsales: null});
     }
-    let {buy_filter, my_sales} = this.state;
-    if (!buy_filter) {
-      buy_filter = await AsyncStorage.getItem('buy_filter');
-      if (buy_filter) {
-        buy_filter = JSON.parse(buy_filter);
-        buy_filter.currency = buy_filter.currency_full?.name;
-        buy_filter.purpose = buy_filter.purpose_full?._id;
-      }
-    }
+    let {currency, currencies, my_sales, page, page_size} = this.state;
     let onsales = await post_request(
       my_sales ? `my_sales/${this.loggeduser._id}` : 'onsale',
       my_sales
-        ? null
+        ? {
+            skip: page * page_size,
+            limit: page_size,
+          }
         : {
-            currency: buy_filter?.currency,
-            value: Number(buy_filter?.value),
-            purposes: buy_filter?.purpose,
+            currency,
+            fetch_currencies: !!mount,
+            skip: page * page_size,
+            limit: page_size,
+            user: this.loggeduser._id,
           },
     );
 
-    this.setState({onsales, buy_filter});
+    if (!!mount) {
+      let {onsales: onsales_, currencies: currencies_} = onsales;
+      onsales = onsales_;
+      currencies = currencies_;
+    }
+
+    // if (currencies && currencies.map)
+    //   currencies = currencies.sort((c1, c2) => {
+    //     let c1_index = currencies_alignment.findIndex(m =>
+    //         c1.name.toLowerCase().includes(m),
+    //       ),
+    //       c2_index = currencies_alignment.findIndex(m =>
+    //         c2.name.toLowerCase().includes(m),
+    //       );
+    //     if (c1_index === -1) c1_index = 200;
+    //     if (c2_index === -1) c2_index = 200;
+
+    //     return c1_index - c2_index;
+    //   });
+
+    this.setState(mount ? {onsales, currencies} : {onsales});
   };
 
-  componentDidMount = () => {
-    let {navigation} = this.props;
-    navigation.addListener('focus', p => {
-      let {route} = this.props;
-      let {buy_filter} = route?.params || {};
-      this.setState({buy_filter}, this.fetch_currencies);
-    });
+  componentDidMount = async () => {
+    await this.fetch_currencies(undefined, true);
   };
 
   toggle_search = () =>
@@ -88,41 +104,20 @@ class Market extends React.Component {
 
   sell = () => this.cool_modal_sell_value?.toggle_show_modal();
 
+  set_currency = currency => {
+    this.setState({currency}, () => this.fetch_currencies(true));
+  };
+
+  set_screen_state = screen_state => {
+    this.setState({screen_state});
+  };
+
   render_buttons = () => {
-    let {my_sales} = this.state;
+    let {screen_state, my_sales} = this.state;
+    let {navigation} = this.props;
 
     return (
       <Bg_view no_bg style={{justifyContent: 'center'}} horizontal>
-        <Small_btn
-          title="sell"
-          inverted
-          action={this.sell}
-          style={{
-            minWidth: null,
-            paddingHorizontal: wp(2.8),
-            margin: 0,
-          }}
-          icon={
-            <Icon
-              icon="buy_wine_colour_icon.png"
-              style={{height: wp(5), width: wp(5), marginLeft: wp(1)}}
-            />
-          }
-        />
-        <Small_btn
-          title="buy"
-          style={{
-            minWidth: null,
-            paddingHorizontal: wp(2.8),
-          }}
-          action={this.buy}
-          icon={
-            <Icon
-              icon="receive_white_icon.png"
-              style={{height: wp(5), width: wp(5), marginLeft: wp(1.4)}}
-            />
-          }
-        />
         <Small_btn
           inverted={!my_sales}
           title="my sales"
@@ -133,16 +128,26 @@ class Market extends React.Component {
             margin: 0,
           }}
           right_icon={
-            my_sales ? null : (
-              <Icon
-                icon="filter_icon.png"
-                style={{
-                  height: wp(4),
-                  width: wp(4),
-                  marginRight: wp(1.4),
-                }}
-              />
-            )
+            <Icon
+              icon="buy_wine_colour_icon.png"
+              style={{height: wp(5), width: wp(5), marginRight: wp(1)}}
+            />
+          }
+        />
+        <Small_btn
+          inverted={screen_state !== 'placed_offers'}
+          title="placed offers"
+          action={() => navigation.navigate('buyer_offers')}
+          style={{
+            minWidth: null,
+            paddingHorizontal: wp(2.8),
+            margin: 0,
+          }}
+          icon={
+            <Icon
+              icon="forward_arrow_icon.png"
+              style={{height: wp(5), width: wp(5), marginRight: wp(1.4)}}
+            />
           }
         />
       </Bg_view>
@@ -151,7 +156,15 @@ class Market extends React.Component {
 
   render = () => {
     let {navigation} = this.props;
-    let {onsales, buy_filter, search_value, my_sales, show_search} = this.state;
+    let {
+      onsales,
+      currency,
+      currencies,
+      buy_filter,
+      search_value,
+      my_sales,
+      show_search,
+    } = this.state;
     if (search_value)
       onsales = onsales?.filter(curr => filter(curr, search_value));
 
@@ -181,10 +194,6 @@ class Market extends React.Component {
                   </Fr_text>
                 </Bg_view>
                 <Icon
-                  icon={require('../../android/app/src/main/assets/Icons/chat_send_icon.png')}
-                  action={() => navigation.navigate('buyer_offers')}
-                />
-                <Icon
                   icon={require('../../android/app/src/main/assets/Icons/refresh.png')}
                   action={() => this.fetch_currencies(true)}
                 />
@@ -209,6 +218,25 @@ class Market extends React.Component {
               {this.render_buttons()}
 
               <Line />
+
+              {currencies && !my_sales ? (
+                <Bg_view style={{height: hp(5)}}>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    <Bg_view style={{width: wp(4)}} />
+                    {currencies.map(currency_ =>
+                      currency_.name === 'naira' ? null : (
+                        <Text_btn
+                          key={currency_._id}
+                          text={currency_.name}
+                          accent={currency_.name === currency}
+                          capitalise
+                          action={() => this.set_currency(currency_.name)}
+                        />
+                      ),
+                    )}
+                  </ScrollView>
+                </Bg_view>
+              ) : null}
 
               <ScrollView showsVerticalScrollIndicator={false}>
                 <Bg_view no_bg style={{paddingTop: hp(2.8)}}>
@@ -235,7 +263,7 @@ class Market extends React.Component {
                         text={
                           my_sales
                             ? "You don't have any currency onsale"
-                            : 'No currencies on the market yet.'
+                            : `No ${capitalise(currency)} on the market yet.`
                         }
                       />
                     )

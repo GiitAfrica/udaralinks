@@ -5,14 +5,13 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import {emitter} from '../../Udara';
+import {Admin_id, emitter} from '../../Udara';
 import Bg_view from '../Components/Bg_view';
 import Cool_modal from '../Components/cool_modal';
 import Currencies from '../Components/currencies';
 import Fr_text from '../Components/Fr_text';
 import Header from '../Components/header';
 import Icon from '../Components/Icon';
-import Loadindicator from '../Components/load_indicator';
 import Stretched_button from '../Components/Stretched_button';
 import Text_btn from '../Components/Text_btn';
 import {hp, wp} from '../utils/dimensions';
@@ -69,6 +68,8 @@ class Sell extends React.Component {
     this.setState({currency, currency_full});
 
   place_sale = async () => {
+    if (this.state.loading) return;
+
     this.setState({loading: true});
     let {navigation, route} = this.props;
     let {wallet} = route.params;
@@ -106,7 +107,8 @@ class Sell extends React.Component {
   };
 
   render() {
-    let {navigation} = this.props;
+    let {navigation, route} = this.props;
+    let {user} = route.params;
     let {value, currency_full, minimum_sell_value, offer_terms, rate, loading} =
       this.state;
 
@@ -212,7 +214,7 @@ class Sell extends React.Component {
                 marginBottom: hp(1.4),
               }}>
               <TextInput
-                placeholder="Set minimum sell value"
+                placeholder="Set minimum sell value (Optional)"
                 value={String(minimum_sell_value)}
                 keyboardType="phone-pad"
                 onChangeText={this.set_minimum_sell_value}
@@ -270,11 +272,37 @@ class Sell extends React.Component {
           </Bg_view>
 
           <Stretched_button
-            disabled={this.is_set()}
+            disabled={
+              this.is_set() || (value > 500 && user.status !== 'verified')
+            }
             title="place sale"
             action={this.place_sale}
             loading={loading}
           />
+
+          {value > 500 &&
+          user.status !== 'verified' &&
+          user._id !== Admin_id ? (
+            <Bg_view
+              style={{
+                alignItems: 'center',
+                marginBottom: hp(2.8),
+                marginHorizontal: wp(10),
+              }}>
+              <Fr_text italic centralise color="red">
+                Transactions have limited value as an unverified user account.
+              </Fr_text>
+
+              <Text_btn
+                bold
+                capitalise
+                text="verify account"
+                action={() =>
+                  navigation.navigate('account_verification', {user: user._id})
+                }
+              />
+            </Bg_view>
+          ) : null}
         </ScrollView>
 
         <Cool_modal ref={cool_modal => (this.cool_modal = cool_modal)}>

@@ -1,10 +1,17 @@
+let DEV = true;
+let PRD = !DEV;
+
 let domain = `${
-  true
+  PRD
     ? 'https://mobile.udaralinksapp.com'
     : false
     ? 'http://192.168.43.203:3600'
     : 'http://10.0.2.2:3600'
 }`;
+
+let sock_domain = DEV
+  ? 'http://10.0.2.2:3602/'
+  : 'https://sock.udaralinksapp.com/';
 
 const get_request = async path => {
   if (path && path.startsWith('/')) path = path.slice(1);
@@ -48,4 +55,4 @@ const post_request = async (path, data) => {
   }
 };
 
-export {post_request, get_request, domain};
+export {post_request, get_request, domain, sock_domain};
